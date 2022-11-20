@@ -6,7 +6,25 @@ const initialState = {
             name: "SSD",
             price: 500000,
             uom_id: "cai",
-        }
+        },
+        {
+            product_id: "SP02",
+            name: "CPU core i9",
+            price: 500000,
+            uom_id: "cai",
+        },
+        {
+            product_id: "SP03",
+            name: "Ram",
+            price: 500000,
+            uom_id: "cai",
+        },
+        {
+            product_id: "SP04",
+            name: "HDD",
+            price: 500000,
+            uom_id: "cai",
+        },
     ]
 }
 

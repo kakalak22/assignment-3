@@ -18,7 +18,7 @@ import { CloseOutlined, PlusCircleOutlined } from "@ant-design/icons";
 import FormBodyView from "../../base/components/FormBodyView";
 import TabPane from "antd/lib/tabs/TabPane";
 import ButtonAddNewRowTable from "../../base/components/ButtonAddNewRowTable";
-import { isEqual } from "lodash";
+import { cloneDeep, find, isEqual, merge } from "lodash";
 import { useSelector } from "react-redux";
 
 const ObjectID = require("bson-objectid");
@@ -27,6 +27,7 @@ const FormHangBanTraLai = () => {
   //local state
   const [keyTabs, setKeyTabs] = useState("ctps");
   const [dataDongPhatSinh, setDataDongPhatSinh] = useState([]);
+  console.log(dataDongPhatSinh);
   const [readOnly, setReadOnly] = useState(false);
   const danhSachSanPham = useSelector(
     (state) => {
@@ -34,6 +35,28 @@ const FormHangBanTraLai = () => {
     },
     (prev, next) => isEqual(prev, next)
   );
+
+  const options = danhSachSanPham.map((sanPham) => {
+    return {
+      value: sanPham.product_id,
+      label: `[${sanPham.product_id}]${sanPham.name}`,
+      key: sanPham.product_id,
+    };
+  });
+
+  //function select san pham
+  const handleSelectSanPham = (value) => {
+    console.log(value);
+    let copyDataDongPhatSinh = cloneDeep(dataDongPhatSinh);
+    let copyDanhSachSanPham = cloneDeep(danhSachSanPham);
+    const lastIndex = copyDataDongPhatSinh.length - 1;
+    const temp = find(copyDanhSachSanPham, { product_id: value });
+
+    console.log("temp", temp);
+    console.log("dong cu", copyDataDongPhatSinh[lastIndex]);
+    console.log(copyDataDongPhatSinh);
+    setDataDongPhatSinh(copyDataDongPhatSinh);
+  };
 
   //function submit form
   const createData = (values) => {
@@ -49,14 +72,14 @@ const FormHangBanTraLai = () => {
       }
     });
     n._id = ObjectID().toString();
-    n.product_id = { _id: "", name: "" };
+    n.product_id = "";
     // n.khoanmuc = { _id: '', name: '' }
-    n.warehouse_id = { _id: "", name: "" };
-    n.uom_id = { _id: "", name: "" };
-    n.debit_account_id = { _id: "", full_name: "" };
-    n.credit_account_id = { _id: "", full_name: "" };
-    n.tax_debit_account_id = { _id: "", full_name: "" };
-    n.tax_credit_account_id = { _id: "", full_name: "" };
+    n.warehouse_id = "";
+    n.uom_id = "";
+    n.debit_account_id = "";
+    n.credit_account_id = "";
+    n.tax_debit_account_id = "";
+    n.tax_credit_account_id = "";
     n.tax_name = "";
     let noiDl = dataDongPhatSinh.concat(n);
     setDataDongPhatSinh(noiDl);
@@ -88,7 +111,14 @@ const FormHangBanTraLai = () => {
       recordKey: "product_id",
       fixed: "left",
       width: 80,
-      render: <Select options={[]} />,
+      render: (record, data, index) => (
+        <Select
+          style={{ width: "100%" }}
+          options={options}
+          onSelect={handleSelectSanPham}
+          value={record.product_id}
+        />
+      ),
     },
     {
       title: "Sản phẩm",
@@ -103,7 +133,7 @@ const FormHangBanTraLai = () => {
             name="name"
             // dataId={record._id}
             // onChange={onChangeItem}
-            // value={record.name}
+            value={record.name}
             readOnly={true}
             style={{ width: "100%", textOverflow: "initial" }}
           />
@@ -120,6 +150,10 @@ const FormHangBanTraLai = () => {
         }
         return (
           <InputNumber
+            name="price"
+            // dataId={record._id}
+            // onChange={onChangeItem}
+            value={record.price}
             readOnly={true}
             style={{ width: "100%", textOverflow: "initial" }}
           />
@@ -135,6 +169,7 @@ const FormHangBanTraLai = () => {
       title: "ĐVT",
       recordKey: "uom_id",
       width: 50,
+      render: (record, data, index) => <Input value />,
     },
     {
       title: "Thành tiền ",
