@@ -52,7 +52,8 @@ function* workerCreateNewHangBanTraLai(action) {
 
         const copyDongPhatSinh = [...temp, ...dongPhatSinh];
 
-        console.log(copyDongPhatSinh);
+        action.getId(hangBanTraLaiId);
+
         yield put({
             type: Actions.HANG_BAN_TRA_LAI_SAVE,
             data: {

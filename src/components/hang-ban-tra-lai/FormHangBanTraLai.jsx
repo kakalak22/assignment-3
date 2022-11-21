@@ -35,7 +35,7 @@ import FormFooterComponent from "../../base/components/FormFooterComponent";
 
 const ObjectID = require("bson-objectid");
 
-const FormHangBanTraLai = ({ closeForm, activeId }) => {
+const FormHangBanTraLai = ({ closeForm, activeId, getId }) => {
   const [form] = Form.useForm();
 
   const danhSachSanPham = useSelector(
@@ -129,7 +129,10 @@ const FormHangBanTraLai = ({ closeForm, activeId }) => {
           hangBanTraLai: values,
           dongPhatSinh: dataDongPhatSinh,
         },
+        getId: getId,
       });
+      setIsCreateMode(false);
+      setReadOnly(true);
     }
     if (isEditMode) {
       console.log(values);

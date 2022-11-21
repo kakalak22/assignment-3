@@ -17,7 +17,13 @@ const HangBanTraLai = () => {
   };
 
   if (isFormOpen)
-    return <FormHangBanTraLai activeId={activeId} closeForm={closeForm} />;
+    return (
+      <FormHangBanTraLai
+        activeId={activeId}
+        getId={handleClick}
+        closeForm={closeForm}
+      />
+    );
   return <ListHangBanTraLai getId={handleClick} openForm={openForm} />;
 };
 
