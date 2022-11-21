@@ -8,23 +8,28 @@ const initialState = {
             invoice_code: "BH01",
             description: "Bán hàng cho Tuyền",
             partner_id: "Ngoc Tuyen",
-            invoice_date: "17/11/2022",
-            entry_date: "17/11/2022",
+            invoice_date: "Tue Nov 15 2022 14:18:33 GMT+0700 (Indochina Time)",
+            entry_date: "Tue Nov 15 2022 14:18:33 GMT+0700 (Indochina Time)",
             tot_amount: 2850000,
             status: "post"
         }
+    ],
+    dongPhatSinh: [
+
     ]
 }
 
 export default (state = initialState, action) => {
     switch (action.type) {
-        // case Actions.SAVE_ITEM_TO_CART: {
-        //     const { data = {} } = action;
-        //     const { newMyCart } = data;
-        //     return {
-        //         ...state
-        //     }
-        // }
+        case Actions.HANG_BAN_TRA_LAI_SAVE: {
+            const { data = {} } = action;
+            const { copyHangBanTraLai, copyDongPhatSinh } = data;
+            return {
+                ...state,
+                hangBanTraLai: copyHangBanTraLai,
+                dongPhatSinh: copyDongPhatSinh
+            }
+        }
         default:
             return state;
     }

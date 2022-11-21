@@ -1,12 +1,13 @@
-import { Button, Input, Select, Space, Table } from "antd";
+import { Button, Input, Select, Space, Table, Tag } from "antd";
 import Search from "antd/lib/input/Search";
 import { isEqual } from "lodash";
 import React from "react";
 import { useSelector } from "react-redux";
+import FieldNumb from "../../base/components/FieldNumb";
 import ListHeadView from "../../base/components/ListHeadView";
 import ListViewContainer from "../../base/components/ListViewContainer";
 
-const ListHangBanTraLai = () => {
+const ListHangBanTraLai = ({ openForm, getId }) => {
   const hangBanTraLai = useSelector(
     (state) => {
       return state.hangBanTraLai.hangBanTraLai;
@@ -33,15 +34,11 @@ const ListHangBanTraLai = () => {
       key: "name",
       dataIndex: "name",
       width: 150,
-      //   render: (record) => {
-      //     return (
-      //       <FieldChar
-      //         value={record.name}
-      //         readonly={true}
-      //         style={{ width: "100%" }}
-      //       />
-      //     );
-      //   },
+      render: (record) => {
+        return (
+          <Input value={record} readOnly={true} style={{ width: "100%" }} />
+        );
+      },
     },
     {
       title: "Số hóa đơn",
@@ -49,75 +46,77 @@ const ListHangBanTraLai = () => {
       key: "invoice_code",
       dataIndex: "invoice_code",
       width: 150,
-      //   render: (record) => {
-      //     return (
-      //       <FieldChar
-      //         value={record.invoice_code}
-      //         readonly={true}
-      //         style={{ width: "100%", textOverflow: "ellipsis" }}
-      //       />
-      //     );
-      //   },
+      render: (record) => {
+        return (
+          <Input
+            value={record}
+            readOnly={true}
+            style={{ width: "100%", textOverflow: "ellipsis" }}
+          />
+        );
+      },
     },
     {
       title: "Diễn giải",
       key: "description",
       dataIndex: "description",
       width: 250,
-      //   render: (record) => {
-      //     return (
-      //       <FieldChar
-      //         value={record.description}
-      //         readonly={true}
-      //         style={{ width: "100%", textOverflow: "ellipsis" }}
-      //       />
-      //     );
-      //   },
+      render: (record) => {
+        return (
+          <Input
+            value={record}
+            readOnly={true}
+            style={{ width: "100%", textOverflow: "ellipsis" }}
+          />
+        );
+      },
     },
     {
       title: "Khách hàng",
       key: "partner_id",
       dataIndex: "partner_id",
       width: 250,
-      //   render: (record) => {
-      //     return (
-      //       <FieldChar
-      //         value={record.partner_id.name}
-      //         readonly={true}
-      //         style={{ width: "100%", textOverflow: "ellipsis" }}
-      //       />
-      //     );
-      //   },
+      render: (record) => {
+        return (
+          <Input
+            value={record}
+            readOnly={true}
+            style={{ width: "100%", textOverflow: "ellipsis" }}
+          />
+        );
+      },
     },
     {
       title: "Ngày chứng từ",
       key: "invoice_date",
       dataIndex: "invoice_date",
       width: 150,
-      //   render: (record) => {
-      //     return (
-      //       <FieldChar
-      //         value={format(record.invoice_date, "dd/MM/yyyy")}
-      //         readonly={true}
-      //         style={{ width: "100%" }}
-      //       />
-      //     );
-      //   },
+      render: (record) => {
+        const date = new Date(record);
+        return (
+          <Input
+            value={`${date.getDate()}/${date.getMonth()}/${date.getFullYear()}`}
+            readOnly={true}
+            style={{ width: "100%" }}
+          />
+        );
+      },
     },
     {
       title: "Ngày hạch toán",
       key: "entry_date",
       dataIndex: "entry_date",
       width: 150,
-      //   render: (record) => {
-      //     return (
-      //       <FieldChar
-      //         value={format(record.entry_date, "dd/MM/yyyy")}
-      //         readonly={true}
-      //         style={{ width: "100%" }}
-      //       />
-      //     );
-      //   },
+      render: (record) => {
+        const date = new Date(record);
+        return (
+          <Input
+            value={`${date.getDate()}/${date.getMonth()}/${date.getFullYear()}`}
+            readOnly={true}
+            style={{ width: "100%" }}
+          />
+        );
+      },
     },
 
     {
@@ -125,41 +124,39 @@ const ListHangBanTraLai = () => {
       key: "tot_amount",
       dataIndex: "tot_amount",
       width: 130,
-      //   render: (record) => {
-      //     return (
-      //       <FieldInteger
-      //         value={
-      //           record.tot_amount ? Number(record.tot_amount.toFixed(round)) : 0
-      //         }
-      //         readonly={true}
-      //         style={{ width: "100%", textAlign: "right" }}
-      //       />
-      //     );
-      //   },
+      render: (record) => {
+        return (
+          <FieldNumb
+            value={record}
+            readOnly={true}
+            style={{ width: "100%", textAlign: "right" }}
+          />
+        );
+      },
     },
     {
       title: "Trạng thái",
       key: "status",
       dataIndex: "status",
       width: 130,
-      //   render: (record) => {
-      //     return record.status === "post" ? (
-      //       <Tag style={{ marginLeft: 5 }} color="#87d068">
-      //         {" "}
-      //         Ghi sổ
-      //       </Tag>
-      //     ) : record.status === "unpost" ? (
-      //       <Tag style={{ marginLeft: 5 }} color="#848484">
-      //         {" "}
-      //         Chưa ghi sổ
-      //       </Tag>
-      //     ) : record.status === "cancel" ? (
-      //       <Tag style={{ marginLeft: 5 }} color="#cd201f">
-      //         {" "}
-      //         Hủy chứng từ
-      //       </Tag>
-      //     ) : null;
-      //   },
+      render: (record) => {
+        return record === "post" ? (
+          <Tag style={{ marginLeft: 5 }} color="#87d068">
+            {" "}
+            Ghi sổ
+          </Tag>
+        ) : record === "unpost" ? (
+          <Tag style={{ marginLeft: 5 }} color="#848484">
+            {" "}
+            Chưa ghi sổ
+          </Tag>
+        ) : record === "cancel" ? (
+          <Tag style={{ marginLeft: 5 }} color="#cd201f">
+            {" "}
+            Hủy chứng từ
+          </Tag>
+        ) : null;
+      },
     },
   ];
 
@@ -168,7 +165,14 @@ const ListHangBanTraLai = () => {
       <ListHeadView
         buttons={
           <React.Fragment>
-            <Button>Thêm mới</Button>
+            <Button
+              onClick={() => {
+                openForm();
+                getId("");
+              }}
+            >
+              Thêm mới
+            </Button>
           </React.Fragment>
         }
         filter={
@@ -221,12 +225,12 @@ const ListHangBanTraLai = () => {
         style={{ height: "auto" }}
         scroll={{ y: "calc(98vh - 271px)", x: 1400 }}
         size="small"
-        rowKey="id"
+        rowKey="_id"
         onRow={(record, rowIndex) => {
           return {
             onClick: (event) => {
-              // getId(record._id);
-              // openFormBanHang();
+              getId(record._id);
+              openForm();
             },
           };
         }}

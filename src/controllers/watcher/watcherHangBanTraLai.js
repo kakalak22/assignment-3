@@ -3,18 +3,14 @@ import { takeLeading, select, put, take, call } from "redux-saga/effects";
 import * as Actions from "../action-types/actionTypesHangBanTraLai";
 import axios from "axios";
 import * as lodash from "lodash";
+import { cloneDeep } from "lodash";
+
+const ObjectID = require("bson-objectid");
 
 export function* watcherHangBanTraLai() {
-    yield takeLeading(Actions.SAN_PHAM_CREATE_NEW, workerCreateNewSanPham);
-    yield takeLeading(Actions.SAN_PHAM_CHECK_SAVED, workerCheckSavedSanPham);
-    yield takeLeading(Actions.SAN_PHAM_MAPPING, workerMappingSanPham);
-    yield takeLeading(Actions.CALL_API, workerCallApi);
-    yield takeLeading(Actions.SAN_PHAM_UPDATE, workerUpdateSanPham);
-    yield takeLeading(Actions.SAN_PHAM_DELETE, workerDeleteSanPham);
-    yield takeLeading(Actions.SAN_PHAM_MULTI_DELETE, workerDeleteMultiSanPham);
-    yield takeLeading(Actions.SAN_PHAM_CHANGE_STATUS, workerChangeStatus);
+    yield takeLeading(Actions.HANG_BAN_TRA_LAI_CREATE_NEW, workerCreateNewHangBanTraLai);
 }
-
+/*
 const getNotification = (message, description) => {
     notification.success({
         message: message,
@@ -22,42 +18,75 @@ const getNotification = (message, description) => {
         placement: "bottomRight",
         duration: 1
     })
-}
+}*/
 
-function* workerCreateNewSanPham(action) {
+function* workerCreateNewHangBanTraLai(action) {
     try {
-        const { danhSachSanPham } = yield select(state => state.reducerSanPham);
+        const hangBanTraLaiId = ObjectID().toString();
+        const { hangBanTraLai } = yield select(state => state.hangBanTraLai);
+        const { dongPhatSinh } = yield select(state => state.hangBanTraLai);
         const { data = {} } = action;
+        const { hangBanTraLai: newHangBanTraLai, dongPhatSinh: newDongPhatSinh } = data
+        let copyHangBanTraLai = [
+            {
+                invoice_date: newHangBanTraLai.invoice_date._d.toString(),
+                entry_date: newHangBanTraLai.entry_date._d.toString(),
+                _id: hangBanTraLaiId,
+                name: newHangBanTraLai.name,
+                invoice_code: newHangBanTraLai.invoice_code,
+                description: newHangBanTraLai.description ? newHangBanTraLai.description : `Hang ban tra lai cua ${newHangBanTraLai.partner_id}`,
+                partner_id: newHangBanTraLai.partner_id,
+                tot_amount: 290000,
+                status: "unpost"
+            },
+            ...hangBanTraLai
+        ];
 
-        const { sanPham, imgUrl } = data;
-        let newObj = {
-            ten: sanPham.ten,
-            moTa: sanPham.moTa,
-            linkHinhAnh: imgUrl || "",
-            donGia: sanPham.donGia,
-            soLuongSanPham: sanPham.soLuongSanPham,
-            hienThi: sanPham.hienThi,
-        };
+        let temp = cloneDeep(newDongPhatSinh);
+        temp.forEach((row, index) => {
+            row.hangBanTraLaiId = hangBanTraLaiId;
+        }
+        );
 
+        const copyDongPhatSinh = [...temp, ...dongPhatSinh];
+
+        console.log(copyDongPhatSinh);
         yield put({
-            type: Actions.SAN_PHAM_CHECK_SAVED,
+            type: Actions.HANG_BAN_TRA_LAI_SAVE,
             data: {
-                sanPham: newObj,
-                ttype: "create"
+                copyDongPhatSinh: copyDongPhatSinh,
+                copyHangBanTraLai: copyHangBanTraLai
             }
         })
+        //     const { sanPham, imgUrl } = data;
+        //     let newObj = {
+        //         ten: sanPham.ten,
+        //         moTa: sanPham.moTa,
+        //         linkHinhAnh: imgUrl || "",
+        //         donGia: sanPham.donGia,
+        //         soLuongSanPham: sanPham.soLuongSanPham,
+        //         hienThi: sanPham.hienThi,
+        //     };
 
-        const res = yield take(Actions.SAN_PHAM_CHECK_SAVED_TAKE);
-        const { newSanPham } = res.data;
-        console.log(newSanPham);
-        let newDanhSachSanPham = [newSanPham, ...danhSachSanPham];
-        yield put({
-            type: Actions.SAN_PHAM_SAVE, data:
-            {
-                newDanhSachSanPham: newDanhSachSanPham
-            }
-        });
-        getNotification("Thành công", "Sản phẩm được tạo thành công");
+        //     yield put({
+        //         type: Actions.SAN_PHAM_CHECK_SAVED,
+        //         data: {
+        //             sanPham: newObj,
+        //             ttype: "create"
+        //         }
+        //     })
+
+        //     const res = yield take(Actions.SAN_PHAM_CHECK_SAVED_TAKE);
+        //     const { newSanPham } = res.data;
+        //     console.log(newSanPham);
+        //     let newDanhSachSanPham = [newSanPham, ...danhSachSanPham];
+        //     yield put({
+        //         type: Actions.SAN_PHAM_SAVE, data:
+        //         {
+        //             newDanhSachSanPham: newDanhSachSanPham
+        //         }
+        //     });
+        //     getNotification("Thành công", "Sản phẩm được tạo thành công");
 
     } catch (error) { }
 }
@@ -67,7 +96,7 @@ function* workerCreateNewSanPham(action) {
 //     max = Math.floor(max);
 //     return Math.floor(Math.random() * (max - min + 1) + min); // The maximum is inclusive and the minimum is inclusive
 // }
-
+/*
 function* workerMappingSanPham(action) {
     try {
         const { data = {} } = action;
@@ -410,4 +439,4 @@ function workerDoApiCall(action) {
     }).catch(error => {
         return { error: "error-catch" };
     })
-}
+}*/

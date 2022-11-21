@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import FormHeadView from "../../base/components/FormHeadView";
 import FormViewContainer from "../../base/components/FormViewContainer";
 import {
@@ -14,21 +14,29 @@ import {
   Table,
   Select,
 } from "antd";
-import { CloseOutlined, PlusCircleOutlined } from "@ant-design/icons";
+import {
+  CheckCircleOutlined,
+  CloseOutlined,
+  DeleteOutlined,
+  EditOutlined,
+  PlusCircleOutlined,
+  SaveOutlined,
+} from "@ant-design/icons";
 import FormBodyView from "../../base/components/FormBodyView";
 import TabPane from "antd/lib/tabs/TabPane";
 import ButtonAddNewRowTable from "../../base/components/ButtonAddNewRowTable";
-import { cloneDeep, find, isEqual, merge } from "lodash";
-import { useSelector } from "react-redux";
+import { cloneDeep, find, findIndex, isEqual, merge } from "lodash";
+import { useDispatch, useSelector } from "react-redux";
+import merge2ObjectWithSameKeys from "../../utils/merge2ObjectWithSameKeys";
+import FieldNumb from "../../base/components/FieldNumb";
+import * as HangBanTraLaiActions from "../../controllers/action-types/actionTypesHangBanTraLai";
+import moment from "moment";
 
 const ObjectID = require("bson-objectid");
 
-const FormHangBanTraLai = () => {
-  //local state
-  const [keyTabs, setKeyTabs] = useState("ctps");
-  const [dataDongPhatSinh, setDataDongPhatSinh] = useState([]);
-  console.log(dataDongPhatSinh);
-  const [readOnly, setReadOnly] = useState(false);
+const FormHangBanTraLai = ({ closeForm, activeId }) => {
+  const [form] = Form.useForm();
+
   const danhSachSanPham = useSelector(
     (state) => {
       return state.danhSachSanPham.danhSachSanPham;
@@ -36,31 +44,83 @@ const FormHangBanTraLai = () => {
     (prev, next) => isEqual(prev, next)
   );
 
-  const options = danhSachSanPham.map((sanPham) => {
-    return {
-      value: sanPham.product_id,
-      label: `[${sanPham.product_id}]${sanPham.name}`,
-      key: sanPham.product_id,
-    };
-  });
+  const hangBanTraLai = useSelector(
+    (state) => {
+      return state.hangBanTraLai.hangBanTraLai;
+    },
+    (prev, next) => isEqual(prev, next)
+  );
+
+  const dongPhatSinh = useSelector(
+    (state) => {
+      return state.hangBanTraLai.dongPhatSinh;
+    },
+    (prev, next) => isEqual(prev, next)
+  );
+
+  console.log("dongphatsinh", dongPhatSinh);
+
+  const dispatch = useDispatch();
+
+  //local state
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [isCreateMode, setIsCreateMode] = useState(true);
+  const [keyTabs, setKeyTabs] = useState("ctps");
+  const [dataDongPhatSinh, setDataDongPhatSinh] = useState([]);
+  const [readOnly, setReadOnly] = useState(false);
+  const [currHangBanTraLai, setCurrHangBanTraLai] = useState({});
+  useEffect(() => {
+    if (activeId) {
+      setReadOnly(true);
+      const temp = find(hangBanTraLai, { _id: activeId });
+      setCurrHangBanTraLai(temp);
+      temp.entry_date = moment(temp.entry_date);
+      temp.invoice_date = moment(temp.invoice_date);
+      // console.log(temp);
+      form.setFieldsValue(temp);
+      const tempDongPhatSinh = dongPhatSinh.filter((row) => {
+        return row.hangBanTraLaiId === activeId;
+      });
+      // console.log("temp", tempDongPhatSinh);
+      setDataDongPhatSinh(tempDongPhatSinh);
+      setIsCreateMode(false);
+    }
+  }, [activeId]);
 
   //function select san pham
-  const handleSelectSanPham = (value) => {
-    console.log(value);
+  const handleSelectSanPham = (value, _, record) => {
     let copyDataDongPhatSinh = cloneDeep(dataDongPhatSinh);
     let copyDanhSachSanPham = cloneDeep(danhSachSanPham);
-    const lastIndex = copyDataDongPhatSinh.length - 1;
+    const index = findIndex(copyDataDongPhatSinh, { _id: record._id });
+    //data from select
     const temp = find(copyDanhSachSanPham, { product_id: value });
 
-    console.log("temp", temp);
-    console.log("dong cu", copyDataDongPhatSinh[lastIndex]);
-    console.log(copyDataDongPhatSinh);
+    let newRow = merge2ObjectWithSameKeys(copyDataDongPhatSinh[index], temp);
+    copyDataDongPhatSinh[index] = newRow;
+    // copyDataDongPhatSinh[index].index = rowIndex;
+    setDataDongPhatSinh(copyDataDongPhatSinh);
+  };
+
+  //function onChange
+  const handleChangeDongPhatSinhCell = (value, record, propertyName) => {
+    let copyDataDongPhatSinh = cloneDeep(dataDongPhatSinh);
+    const index = findIndex(copyDataDongPhatSinh, { _id: record._id });
+    copyDataDongPhatSinh[index][propertyName] = value;
     setDataDongPhatSinh(copyDataDongPhatSinh);
   };
 
   //function submit form
   const createData = (values) => {
     console.log(values);
+    dispatch({
+      type: HangBanTraLaiActions.HANG_BAN_TRA_LAI_CREATE_NEW,
+      data: {
+        hangBanTraLai: values,
+        dongPhatSinh: dataDongPhatSinh,
+      },
+    });
+    // closeForm();
+    // setIsCreateMode(false);
   };
 
   //function add row to table
@@ -84,38 +144,91 @@ const FormHangBanTraLai = () => {
     let noiDl = dataDongPhatSinh.concat(n);
     setDataDongPhatSinh(noiDl);
   };
+
+  //fucntion delete row from table
+  const removeRow = (record) => {
+    const copyDataDongPhatSinh = cloneDeep(dataDongPhatSinh);
+    const index = findIndex(copyDataDongPhatSinh, { _id: record._id });
+    if (index > -1) {
+      copyDataDongPhatSinh.splice(index, 1);
+      setDataDongPhatSinh(copyDataDongPhatSinh);
+    }
+  };
+
+  /*=============================DATA TABLE======================================*/
+
+  //options warehouse
+
+  const warehouseOptions = [
+    {
+      value: "WareHouse01",
+      label: "Kho 01",
+      key: "WareHouse01",
+    },
+    {
+      value: "WareHouse02",
+      label: "Kho 02",
+      key: "WareHouse02",
+    },
+  ];
+
+  //options account
+  const accountOptions = [
+    {
+      value: 1111,
+      label: "[1111] Tiền Việt Nam",
+      key: 1111,
+    },
+    {
+      value: 1112,
+      label: "[1112] Tiền Ngoại Tệ",
+      key: 1112,
+    },
+    {
+      value: 1113,
+      label: "[1113] Vàng Tiền Tệ",
+      key: 1113,
+    },
+  ];
+
+  //options san pham
+  const options = danhSachSanPham.map((sanPham) => {
+    return {
+      value: sanPham.product_id,
+      label: `[${sanPham.product_id}]${sanPham.name}`,
+      key: sanPham.product_id,
+    };
+  });
+
   //column dong phat sinh
   const column = [
     {
       title: "#",
-      recordKey: "index",
       width: 30,
       fixed: "left",
       align: "center",
-      render: (record, data, index) => {
-        if (!record) {
-          return "";
-        }
-        return (
-          <Input
-            name={"index"}
-            value={index + 1}
-            readOnly={true}
-            style={{ width: "100%", textAlign: "center" }}
-          />
-        );
-      },
+      render: (record, data, index) => index,
+      // {
+      //   console.log(index);
+      //   return (
+      //     <Input
+      //       value={index + 1}
+      //       disabled={true}
+      //       style={{ width: "100%", textAlign: "center" }}
+      //     />
+      //   );
+      // },
     },
     {
       title: "Mã sản phẩm",
       recordKey: "product_id",
       fixed: "left",
-      width: 80,
+      width: 120,
       render: (record, data, index) => (
         <Select
           style={{ width: "100%" }}
           options={options}
-          onSelect={handleSelectSanPham}
+          onSelect={(value, _) => handleSelectSanPham(value, _, record, index)}
           value={record.product_id}
         />
       ),
@@ -134,7 +247,7 @@ const FormHangBanTraLai = () => {
             // dataId={record._id}
             // onChange={onChangeItem}
             value={record.name}
-            readOnly={true}
+            disabled={true}
             style={{ width: "100%", textOverflow: "initial" }}
           />
         );
@@ -143,19 +256,23 @@ const FormHangBanTraLai = () => {
     {
       title: "Đơn giá",
       recordKey: "price",
-      width: 80,
+      width: 120,
       render: (record, data, index) => {
         if (!record) {
           return null;
         }
         return (
-          <InputNumber
+          <FieldNumb
             name="price"
             // dataId={record._id}
             // onChange={onChangeItem}
             value={record.price}
-            readOnly={true}
+            disabled={false}
             style={{ width: "100%", textOverflow: "initial" }}
+            onChange={(value) =>
+              handleChangeDongPhatSinhCell(value, record, "price")
+            }
+            min={0}
           />
         );
       },
@@ -163,64 +280,213 @@ const FormHangBanTraLai = () => {
     {
       title: "SL",
       recordKey: "quantity",
-      width: 40,
+      width: 80,
+      render: (record, data, index) => {
+        return (
+          <FieldNumb
+            value={record ? record.quantity : ""}
+            style={{ width: "100%", textOverflow: "initial" }}
+            name="quantity"
+            required
+            min={1}
+            onChange={(value) =>
+              handleChangeDongPhatSinhCell(value, record, "quantity")
+            }
+          />
+        );
+      },
     },
     {
       title: "ĐVT",
       recordKey: "uom_id",
-      width: 50,
-      render: (record, data, index) => <Input value />,
+      width: 80,
+      render: (record, data, index) => <Input value={record.uom_id} />,
     },
     {
       title: "Thành tiền ",
       recordKey: "amount",
-      width: 80,
+      width: 120,
+      render: (record) => (
+        <FieldNumb
+          style={{ width: "100%", textOverflow: "initial" }}
+          disabled={true}
+          value={record.quantity > 0 ? record.quantity * record.price : null}
+        />
+      ),
     },
     {
       title: "TK nợ",
       recordKey: "debit_account_id",
-      width: 50,
+      width: 100,
+      render: (record, data, index) => {
+        return (
+          <Select
+            dropdownMatchSelectWidth={false}
+            style={{ width: 100 }}
+            options={accountOptions}
+            onSelect={(value) =>
+              handleChangeDongPhatSinhCell(value, record, "debit_account_id")
+            }
+            value={{
+              label: record.debit_account_id,
+              value: record.debit_account_id,
+            }}
+            showSearch={true}
+          />
+        );
+      },
     },
     {
       title: "TK có",
       recordKey: "credit_account_id",
-      width: 50,
+      width: 100,
+      render: (record, data, index) => {
+        return (
+          <Select
+            dropdownMatchSelectWidth={false}
+            style={{ width: 100 }}
+            options={accountOptions}
+            onSelect={(value) =>
+              handleChangeDongPhatSinhCell(value, record, "credit_account_id")
+            }
+            value={{
+              label: record.credit_account_id,
+              value: record.credit_account_id,
+            }}
+            showSearch={true}
+          />
+        );
+      },
     },
     {
       title: "Kho",
-      // recordKey: 'warehouse_id',
+      recordKey: "warehouse_id",
       width: 100,
+      render: (record) => {
+        return (
+          <Select
+            dropdownMatchSelectWidth={false}
+            style={{ width: 100 }}
+            options={warehouseOptions}
+            onSelect={(value) =>
+              handleChangeDongPhatSinhCell(value, record, "warehouse_id")
+            }
+            value={record.warehouse_id}
+            showSearch={true}
+          />
+        );
+      },
     },
     {
       title: "Khoản mục", // mới thêm
       dataIndex: "khoanmuc",
       width: 100,
     },
+    {
+      width: 40,
+      render: (record) => (
+        <Button
+          onClick={() => removeRow(record)}
+          danger
+          icon={<DeleteOutlined />}
+        ></Button>
+      ),
+    },
   ];
+  /*============================= END OF DATA TABLE======================================*/
+
   return (
-    <Form layout="vertical" onFinish={createData}>
+    <Form form={form} layout="vertical" onFinish={createData}>
       <FormHeadView
         formButtons={
           <Row gutter={16}>
             <Col span={24} style={{ display: "flex" }}>
-              <React.Fragment>
-                <Button
-                  type="primary"
-                  htmlType="submit"
-                  style={{ marginRight: 10 }}
-                  //   loading={loading}
-                  icon={<PlusCircleOutlined />}
-                >
-                  Tạo
-                </Button>
-                <Button
-                  type="default"
-                  //   onClick={openFormBanHang}
-                  icon={<CloseOutlined />}
-                >
-                  Hủy tạo
-                </Button>
-              </React.Fragment>
+              {isCreateMode ? (
+                <React.Fragment>
+                  <Button
+                    type="primary"
+                    htmlType="submit"
+                    style={{ marginRight: 10 }}
+                    //   loading={loading}
+                    icon={<PlusCircleOutlined />}
+                  >
+                    Tạo
+                  </Button>
+                  <Button
+                    type="default"
+                    //   onClick={openFormBanHang}
+                    icon={<CloseOutlined />}
+                    onClick={closeForm}
+                  >
+                    Hủy tạo
+                  </Button>
+                </React.Fragment>
+              ) : isEditMode ? (
+                <React.Fragment>
+                  <Button
+                    type="primary"
+                    htmlType="submit"
+                    style={{ marginRight: 10 }}
+                    //   loading={loading}
+                    onClick={() => {
+                      setReadOnly(false);
+                      setIsEditMode(true);
+                    }}
+                    icon={<SaveOutlined />}
+                  >
+                    Lưu
+                  </Button>
+                  <Button
+                    type="default"
+                    //   onClick={openFormBanHang}
+                    icon={<CloseOutlined />}
+                    onClick={() => {
+                      setReadOnly(true);
+                      setIsEditMode(false);
+                    }}
+                  >
+                    Hủy
+                  </Button>
+                </React.Fragment>
+              ) : (
+                <React.Fragment>
+                  <Button
+                    type="primary"
+                    htmlType="submit"
+                    style={{ marginRight: 10 }}
+                    //   loading={loading}
+                    onClick={() => {
+                      setReadOnly(false);
+                      setIsEditMode(true);
+                    }}
+                    icon={<EditOutlined />}
+                  >
+                    Sửa
+                  </Button>
+
+                  <Button
+                    htmlType="submit"
+                    style={{ marginRight: 10 }}
+                    //   loading={loading}
+                    onClick={() => {
+                      setReadOnly(false);
+                      setIsEditMode(true);
+                    }}
+                    icon={<CheckCircleOutlined />}
+                  >
+                    Ghi sổ
+                  </Button>
+
+                  <Button
+                    type="default"
+                    //   onClick={openFormBanHang}
+                    icon={<CloseOutlined />}
+                    onClick={closeForm}
+                  >
+                    Hủy tạo
+                  </Button>
+                </React.Fragment>
+              )}
             </Col>
           </Row>
         }
@@ -237,7 +503,7 @@ const FormHangBanTraLai = () => {
                 >
                   <Col span={8}>Tham chiếu: </Col>
                   <Col span={12}>
-                    <Input readOnly={true} />
+                    <Input disabled={true} />
                   </Col>
                   <Col span={2}>
                     <Button>Chọn</Button>
@@ -249,33 +515,69 @@ const FormHangBanTraLai = () => {
           </Col>
           <Col span={8} style={{ marginLeft: "10px" }}>
             <Form.Item label="Số chứng từ:" name="name">
-              <Input style={{ width: "100%" }} readOnly={true} />
+              <Input
+                style={{ width: "100%" }}
+                value={currHangBanTraLai.name ? currHangBanTraLai.name : ""}
+                disabled={readOnly}
+              />
             </Form.Item>
           </Col>
           <Col span={4}>
             <Form.Item label="Ký hiệu hóa đơn:" name="invoice_symbol">
-              <Input style={{ width: "100%" }} readOnly={readOnly} />
+              <Input
+                style={{ width: "100%" }}
+                value={
+                  currHangBanTraLai.invoice_symbol
+                    ? currHangBanTraLai.invoice_symbol
+                    : ""
+                }
+                disabled={readOnly}
+              />
             </Form.Item>
           </Col>
           <Col span={4}>
             <Form.Item label="Số hóa đơn:" name="invoice_code">
-              <Input style={{ width: "100%" }} />
+              <Input
+                style={{ width: "100%" }}
+                disabled={readOnly}
+                value={
+                  currHangBanTraLai.invoice_code
+                    ? currHangBanTraLai.invoice_code
+                    : ""
+                }
+              />
             </Form.Item>
           </Col>
           <Col span={7}>
             <Form.Item label="Khách hàng:" name="partner_id">
-              <Input style={{ width: "100%" }} />
+              <Input
+                disabled={readOnly}
+                style={{ width: "100%" }}
+                value={
+                  currHangBanTraLai.partner_id
+                    ? currHangBanTraLai.partner_id
+                    : ""
+                }
+              />
             </Form.Item>
           </Col>
           {/** hàng 3 **/}
           <Col span={4} style={{ marginLeft: "10px" }}>
             <Form.Item label="Ngày chứng từ:" name="invoice_date">
-              <DatePicker style={{ width: "100%" }} />
+              <DatePicker
+                disabled={readOnly}
+                format={"DD/MM/YYYY"}
+                style={{ width: "100%" }}
+              />
             </Form.Item>
           </Col>
           <Col span={4}>
             <Form.Item label="Ngày hoạch toán:" name="entry_date">
-              <DatePicker style={{ width: "100%" }} />
+              <DatePicker
+                disabled={readOnly}
+                format={"DD/MM/YYYY"}
+                style={{ width: "100%" }}
+              />
             </Form.Item>
           </Col>
           <Col span={6}>
@@ -284,17 +586,13 @@ const FormHangBanTraLai = () => {
               name="currency_id"
               initialValue={"VND"}
             >
-              <Input
-                readOnly={true}
-                style={{ width: "100%" }}
-                defaultValue="VND"
-              />
+              <Input disabled={true} style={{ width: "100%" }} />
             </Form.Item>
           </Col>
           <Col span={2}>
             <Form.Item label="Tỷ giá:" initialValue={"1.0"}>
               <Input
-                readOnly={true}
+                disabled={true}
                 style={{ width: "100%" }}
                 defaultValue="1.0"
               />
@@ -302,12 +600,15 @@ const FormHangBanTraLai = () => {
           </Col>
           <Col span={7}>
             <Form.Item label="Tham chiếu:">
-              <Input readOnly={true} style={{ width: "100%" }} />
+              <Input disabled={true} style={{ width: "100%" }} />
             </Form.Item>
           </Col>
           <Col span={23} style={{ marginLeft: "10px" }}>
             <Form.Item label="Diễn giải:" name="description">
-              <Input style={{ width: "100%" }} />
+              <Input
+                style={{ width: "100%" }}
+                value={currHangBanTraLai.description}
+              />
             </Form.Item>
           </Col>
           <Col span={24} style={{ marginLeft: "10px" }}>
