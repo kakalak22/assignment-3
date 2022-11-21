@@ -31,6 +31,7 @@ import merge2ObjectWithSameKeys from "../../utils/merge2ObjectWithSameKeys";
 import FieldNumb from "../../base/components/FieldNumb";
 import * as HangBanTraLaiActions from "../../controllers/action-types/actionTypesHangBanTraLai";
 import moment from "moment";
+import FormFooterComponent from "../../base/components/FormFooterComponent";
 
 const ObjectID = require("bson-objectid");
 
@@ -58,8 +59,6 @@ const FormHangBanTraLai = ({ closeForm, activeId }) => {
     (prev, next) => isEqual(prev, next)
   );
 
-  console.log("dongphatsinh", dongPhatSinh);
-
   const dispatch = useDispatch();
 
   //local state
@@ -69,6 +68,9 @@ const FormHangBanTraLai = ({ closeForm, activeId }) => {
   const [dataDongPhatSinh, setDataDongPhatSinh] = useState([]);
   const [readOnly, setReadOnly] = useState(false);
   const [currHangBanTraLai, setCurrHangBanTraLai] = useState({});
+  const [tong, setTong] = useState(0);
+  const [status, setStatus] = useState("unpost");
+
   useEffect(() => {
     if (activeId) {
       setReadOnly(true);
@@ -77,15 +79,24 @@ const FormHangBanTraLai = ({ closeForm, activeId }) => {
       temp.entry_date = moment(temp.entry_date);
       temp.invoice_date = moment(temp.invoice_date);
       // console.log(temp);
+      setStatus(temp.status);
       form.setFieldsValue(temp);
       const tempDongPhatSinh = dongPhatSinh.filter((row) => {
         return row.hangBanTraLaiId === activeId;
       });
-      // console.log("temp", tempDongPhatSinh);
       setDataDongPhatSinh(tempDongPhatSinh);
       setIsCreateMode(false);
     }
   }, [activeId]);
+
+  useEffect(() => {
+    const tong = dataDongPhatSinh.reduce(
+      (prev, curr) => prev + curr.price * curr.quantity,
+      0
+    );
+    setTong(tong);
+    form.setFieldValue("tot_amount", tong);
+  }, [dataDongPhatSinh]);
 
   //function select san pham
   const handleSelectSanPham = (value, _, record) => {
@@ -111,14 +122,25 @@ const FormHangBanTraLai = ({ closeForm, activeId }) => {
 
   //function submit form
   const createData = (values) => {
-    console.log(values);
-    dispatch({
-      type: HangBanTraLaiActions.HANG_BAN_TRA_LAI_CREATE_NEW,
-      data: {
-        hangBanTraLai: values,
-        dongPhatSinh: dataDongPhatSinh,
-      },
-    });
+    if (isCreateMode) {
+      dispatch({
+        type: HangBanTraLaiActions.HANG_BAN_TRA_LAI_CREATE_NEW,
+        data: {
+          hangBanTraLai: values,
+          dongPhatSinh: dataDongPhatSinh,
+        },
+      });
+    }
+    if (isEditMode) {
+      console.log(values);
+      dispatch({
+        type: HangBanTraLaiActions.HANG_BAN_TRA_LAI_UPDATE,
+        data: {
+          hangBanTraLai: { _id: activeId, ...values, status: status },
+          dongPhatSinh: dataDongPhatSinh,
+        },
+      });
+    }
     // closeForm();
     // setIsCreateMode(false);
   };
@@ -230,6 +252,7 @@ const FormHangBanTraLai = ({ closeForm, activeId }) => {
           options={options}
           onSelect={(value, _) => handleSelectSanPham(value, _, record, index)}
           value={record.product_id}
+          disabled={readOnly}
         />
       ),
     },
@@ -267,7 +290,7 @@ const FormHangBanTraLai = ({ closeForm, activeId }) => {
             // dataId={record._id}
             // onChange={onChangeItem}
             value={record.price}
-            disabled={false}
+            disabled={readOnly}
             style={{ width: "100%", textOverflow: "initial" }}
             onChange={(value) =>
               handleChangeDongPhatSinhCell(value, record, "price")
@@ -288,6 +311,7 @@ const FormHangBanTraLai = ({ closeForm, activeId }) => {
             style={{ width: "100%", textOverflow: "initial" }}
             name="quantity"
             required
+            disabled={readOnly}
             min={1}
             onChange={(value) =>
               handleChangeDongPhatSinhCell(value, record, "quantity")
@@ -300,7 +324,9 @@ const FormHangBanTraLai = ({ closeForm, activeId }) => {
       title: "ĐVT",
       recordKey: "uom_id",
       width: 80,
-      render: (record, data, index) => <Input value={record.uom_id} />,
+      render: (record, data, index) => (
+        <Input disabled={readOnly} value={record.uom_id} />
+      ),
     },
     {
       title: "Thành tiền ",
@@ -321,6 +347,7 @@ const FormHangBanTraLai = ({ closeForm, activeId }) => {
       render: (record, data, index) => {
         return (
           <Select
+            disabled={readOnly}
             dropdownMatchSelectWidth={false}
             style={{ width: 100 }}
             options={accountOptions}
@@ -343,6 +370,7 @@ const FormHangBanTraLai = ({ closeForm, activeId }) => {
       render: (record, data, index) => {
         return (
           <Select
+            disabled={readOnly}
             dropdownMatchSelectWidth={false}
             style={{ width: 100 }}
             options={accountOptions}
@@ -373,6 +401,7 @@ const FormHangBanTraLai = ({ closeForm, activeId }) => {
             }
             value={record.warehouse_id}
             showSearch={true}
+            disabled={readOnly}
           />
         );
       },
@@ -389,6 +418,7 @@ const FormHangBanTraLai = ({ closeForm, activeId }) => {
           onClick={() => removeRow(record)}
           danger
           icon={<DeleteOutlined />}
+          disabled={readOnly}
         ></Button>
       ),
     },
@@ -608,6 +638,7 @@ const FormHangBanTraLai = ({ closeForm, activeId }) => {
               <Input
                 style={{ width: "100%" }}
                 value={currHangBanTraLai.description}
+                disabled={readOnly}
               />
             </Form.Item>
           </Col>
@@ -626,7 +657,7 @@ const FormHangBanTraLai = ({ closeForm, activeId }) => {
                       bordered={true}
                       columns={column}
                       dataSource={dataDongPhatSinh}
-                      rowKey={"_id"}
+                      rowKey={(record) => record._id}
                       scroll={{ y: 230, x: 1200 }}
                       rowClassName={"scroll-row"}
                       pagination={{
@@ -639,7 +670,9 @@ const FormHangBanTraLai = ({ closeForm, activeId }) => {
                       // }}
                     />
                     <Col span={23} style={{ margin: "20px 0" }}>
-                      <ButtonAddNewRowTable addNewItem={addRow} />
+                      {!readOnly ? (
+                        <ButtonAddNewRowTable addNewItem={addRow} />
+                      ) : null}
                     </Col>
                   </Col>
                 </Row>
@@ -648,6 +681,61 @@ const FormHangBanTraLai = ({ closeForm, activeId }) => {
           </Col>
         </Row>
       </FormBodyView>
+      <FormFooterComponent
+        datas={[
+          {
+            title: "Tổng trước thuế",
+            children: (
+              <Form.Item style={{ margin: 0 }}>
+                <FieldNumb
+                  value={tong ? tong : 0}
+                  readOnly={true}
+                  bordered={false}
+                  style={{
+                    width: "100%",
+                    backgroundColor: "transparent",
+                    textAlign: "right",
+                  }}
+                />
+              </Form.Item>
+            ),
+          },
+          {
+            title: "Thuế",
+            children: (
+              <Form.Item style={{ margin: 0 }}>
+                <FieldNumb
+                  value={0}
+                  readOnly={true}
+                  bordered={false}
+                  style={{
+                    width: "100%",
+                    backgroundColor: "transparent",
+                    textAlign: "right",
+                  }}
+                />
+              </Form.Item>
+            ),
+          },
+          {
+            title: "Tổng",
+            children: (
+              <Form.Item name="tot_amount" style={{ margin: 0 }}>
+                <FieldNumb
+                  value={tong ? tong : 0}
+                  readOnly={true}
+                  bordered={false}
+                  style={{
+                    width: "100%",
+                    backgroundColor: "transparent",
+                    textAlign: "right",
+                  }}
+                />
+              </Form.Item>
+            ),
+          },
+        ]}
+      />
     </Form>
   );
 };

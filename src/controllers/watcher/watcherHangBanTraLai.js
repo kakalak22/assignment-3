@@ -3,12 +3,13 @@ import { takeLeading, select, put, take, call } from "redux-saga/effects";
 import * as Actions from "../action-types/actionTypesHangBanTraLai";
 import axios from "axios";
 import * as lodash from "lodash";
-import { cloneDeep } from "lodash";
+import { assign, cloneDeep, findIndex } from "lodash";
 
 const ObjectID = require("bson-objectid");
 
 export function* watcherHangBanTraLai() {
     yield takeLeading(Actions.HANG_BAN_TRA_LAI_CREATE_NEW, workerCreateNewHangBanTraLai);
+    yield takeLeading(Actions.HANG_BAN_TRA_LAI_UPDATE, workerUpdateHangBanTraLai);
 }
 /*
 const getNotification = (message, description) => {
@@ -29,6 +30,7 @@ function* workerCreateNewHangBanTraLai(action) {
         const { hangBanTraLai: newHangBanTraLai, dongPhatSinh: newDongPhatSinh } = data
         let copyHangBanTraLai = [
             {
+                invoice_symbol: newHangBanTraLai.invoice_symbol,
                 invoice_date: newHangBanTraLai.invoice_date._d.toString(),
                 entry_date: newHangBanTraLai.entry_date._d.toString(),
                 _id: hangBanTraLaiId,
@@ -36,7 +38,7 @@ function* workerCreateNewHangBanTraLai(action) {
                 invoice_code: newHangBanTraLai.invoice_code,
                 description: newHangBanTraLai.description ? newHangBanTraLai.description : `Hang ban tra lai cua ${newHangBanTraLai.partner_id}`,
                 partner_id: newHangBanTraLai.partner_id,
-                tot_amount: 290000,
+                tot_amount: newHangBanTraLai.tot_amount,
                 status: "unpost"
             },
             ...hangBanTraLai
@@ -137,56 +139,71 @@ function* workerMappingSanPham(action) {
     } catch (error) { }
 }
 
-function* workerUpdateSanPham(action) {
+*/
+function* workerUpdateHangBanTraLai(action) {
     try {
         const { data = {} } = action;
-        let { sanPham } = data;
-        const { danhSachSanPham } = yield select(state => state.reducerSanPham);
-        const index = danhSachSanPham.findIndex(({ id }) => sanPham.id === id);
-        let newDanhSachSanPham = [...danhSachSanPham];
-        if (!sanPham.linkHinhAnh)
-            sanPham.linkHinhAnh = newDanhSachSanPham[index].linkHinhAnh;
-        newDanhSachSanPham[index] = sanPham;
+        let { dongPhatSinh: newDongPhatSinh, hangBanTraLai: newHangBanTraLai } = data;
 
-        yield put({
-            type: Actions.SAN_PHAM_CHECK_SAVED,
-            data: {
-                sanPham: sanPham,
-                ttype: "update"
-            }
-        });
+        const { hangBanTraLai } = yield select(state => state.hangBanTraLai);
+        const { dongPhatSinh } = yield select(state => state.hangBanTraLai);
 
-        const res = yield take(Actions.SAN_PHAM_CHECK_SAVED_TAKE);
-        const { newSanPham } = res.data;
-        if (newSanPham.id) {
-            yield put({
-                type: Actions.SAN_PHAM_SAVE,
-                data: {
-                    newDanhSachSanPham: newDanhSachSanPham
-                }
-            });
-            getNotification("Thành công", "Sản phẩm đã được cập nhật");
+        const index = findIndex(hangBanTraLai, { _id: newHangBanTraLai._id });
+
+        let copyHangBanTraLai = cloneDeep(hangBanTraLai);
+        let copyDongPhatSinh = cloneDeep(dongPhatSinh);
+
+        console.log(newHangBanTraLai);
+
+
+        newHangBanTraLai.invoice_date = newHangBanTraLai.invoice_date._d.toString();
+        newHangBanTraLai.entry_date = newHangBanTraLai.entry_date._d.toString();
+
+        copyHangBanTraLai[index] = newHangBanTraLai;
+
+        for (let i = 0; i < newDongPhatSinh.length; i++) {
+            let index = findIndex(hangBanTraLai, { _id: newDongPhatSinh[i]._id });
+            if (index > -1)
+                assign(copyDongPhatSinh[index], { hangBanTraLaiId: newHangBanTraLai._id, ...newDongPhatSinh[i] });
+            if (i > dongPhatSinh.length - 1)
+                copyDongPhatSinh.push({ hangBanTraLaiId: newHangBanTraLai._id, ...newDongPhatSinh[i] });
         }
 
-        // yield put({
-        //     type: Actions.SAN_PHAM_SAVE,
-        //     data: {
-        //         newDanhSachSanPham: newDanhSachSanPham
-        //     }
-        // });
+        console.log(copyDongPhatSinh);
+
+        yield put({
+            type: Actions.HANG_BAN_TRA_LAI_SAVE,
+            data: {
+                copyDongPhatSinh: copyDongPhatSinh,
+                copyHangBanTraLai: copyHangBanTraLai
+            }
+        })
+
+
         // yield put({
         //     type: Actions.SAN_PHAM_CHECK_SAVED,
         //     data: {
-        //         prevDanhSachSanPham: danhSachSanPham
+        //         sanPham: sanPham,
+        //         ttype: "update"
         //     }
-        // })
+        // });
 
         // const res = yield take(Actions.SAN_PHAM_CHECK_SAVED_TAKE);
-        // const { isSaved } = res.data;
-        // if (isSaved)
+        // const { newSanPham } = res.data;
+        // if (newSanPham.id) {
+        //     yield put({
+        //         type: Actions.SAN_PHAM_SAVE,
+        //         data: {
+        //             newDanhSachSanPham: newDanhSachSanPham
+        //         }
+        //     });
         //     getNotification("Thành công", "Sản phẩm đã được cập nhật");
+        // }
+
     } catch (error) { }
 }
+
+/*
 
 function* workerDeleteSanPham(action) {
     try {
