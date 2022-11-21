@@ -160,13 +160,16 @@ function* workerUpdateHangBanTraLai(action) {
         newHangBanTraLai.entry_date = newHangBanTraLai.entry_date._d.toString();
 
         copyHangBanTraLai[index] = newHangBanTraLai;
+        console.log(newDongPhatSinh)
 
         for (let i = 0; i < newDongPhatSinh.length; i++) {
-            let index = findIndex(hangBanTraLai, { _id: newDongPhatSinh[i]._id });
-            if (index > -1)
+            let index = findIndex(dongPhatSinh, { _id: newDongPhatSinh[i]._id });
+            if (index > -1) {
                 assign(copyDongPhatSinh[index], { hangBanTraLaiId: newHangBanTraLai._id, ...newDongPhatSinh[i] });
-            if (i > dongPhatSinh.length - 1)
+            }
+            else {
                 copyDongPhatSinh.push({ hangBanTraLaiId: newHangBanTraLai._id, ...newDongPhatSinh[i] });
+            }
         }
 
         console.log(copyDongPhatSinh);
