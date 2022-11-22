@@ -2,6 +2,7 @@ import {
   DesktopOutlined,
   FileOutlined,
   PieChartOutlined,
+  SnippetsFilled,
   TeamOutlined,
   UserOutlined,
 } from "@ant-design/icons";
@@ -11,7 +12,7 @@ import HangBanTraLai from "../hang-ban-tra-lai/HangBanTraLai";
 import "./AdminLayout.css";
 const { Header, Content, Footer, Sider } = Layout;
 const AdminLayout = () => {
-  const [collapsed, setCollapsed] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
   return (
     <Layout
       style={{
@@ -19,12 +20,39 @@ const AdminLayout = () => {
       }}
     >
       <Sider
-        collapsible
-        collapsed={collapsed}
-        onCollapse={(value) => setCollapsed(value)}
+        theme="dark"
+        collapsed={true}
+        style={{
+          backgroundColor: "#871400",
+        }}
+        className="collapsed-sider"
       >
         <div className="logo" />
-        <Menu theme="dark" defaultSelectedKeys={["1"]} mode="inline">
+        <Menu
+          style={{ backgroundColor: "#871400", padding: "15px" }}
+          defaultSelectedKeys={["1"]}
+          mode="inline"
+        >
+          <Menu.Item
+            key="1"
+            onClick={() => setIsOpen((state) => !state)}
+            icon={<SnippetsFilled style={{ fontSize: "20px" }} />}
+          ></Menu.Item>
+        </Menu>
+      </Sider>
+      <Sider
+        className="sider"
+        width={isOpen ? 160 : 0}
+        style={{
+          backgroundColor: "#d4380d",
+        }}
+      >
+        <Menu
+          style={{ backgroundColor: "#d4380d", padding: "15px" }}
+          theme="dark"
+          defaultSelectedKeys={["1"]}
+          mode="inline"
+        >
           <Menu.Item key="1">Bán hàng</Menu.Item>
         </Menu>
       </Sider>

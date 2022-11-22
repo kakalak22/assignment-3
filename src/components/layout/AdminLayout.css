@@ -11,3 +11,23 @@
 .ant-table-cell-row-hover {
   background-color: #e6f7ff !important;
 }
+
+.collapsed-sider .ant-menu-item {
+  background-color: #871400 !important;
+}
+
+.collapsed-sider .ant-menu-item-selected {
+  border-radius: 5px !important;
+  background-color: #f6a89ba0 !important;
+  color: #fff !important;
+}
+
+.sider .ant-menu-item {
+  background-color: #871400 !important;
+}
+
+.sider .ant-menu-item-selected {
+  border-radius: 5px !important;
+  background-color: #f6a89ba0 !important;
+  color: #fff !important;
+}

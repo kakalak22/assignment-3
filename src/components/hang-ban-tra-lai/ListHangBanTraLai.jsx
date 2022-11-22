@@ -1,20 +1,34 @@
 import { Button, Input, Select, Space, Table, Tag } from "antd";
 import Search from "antd/lib/input/Search";
 import { isEqual } from "lodash";
-import React from "react";
-import { useSelector } from "react-redux";
+import React, { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import FieldNumb from "../../base/components/FieldNumb";
 import ListHeadView from "../../base/components/ListHeadView";
 import ListViewContainer from "../../base/components/ListViewContainer";
+import * as HangBanTraLaiActions from "../../controllers/action-types/actionTypesHangBanTraLai";
 
 const ListHangBanTraLai = ({ openForm, getId }) => {
+  const dispatch = useDispatch();
   const hangBanTraLai = useSelector(
     (state) => {
       return state.hangBanTraLai.hangBanTraLai;
     },
     (prev, next) => isEqual(prev, next)
   );
-  console.log(hangBanTraLai);
+
+  //local state
+
+  const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    dispatch({
+      type: HangBanTraLaiActions.HANG_BAN_TRA_LAI_GET_DATA_API,
+      setIsLoading: setIsLoading,
+    });
+    setIsLoading(true);
+  }, []);
+
   //table column
   const column = [
     {
@@ -220,7 +234,7 @@ const ListHangBanTraLai = ({ openForm, getId }) => {
         columns={column}
         dataSource={hangBanTraLai}
         bordered
-        //   loading={}
+        loading={isLoading}
         pagination={false}
         style={{ height: "auto" }}
         scroll={{ y: "calc(98vh - 271px)", x: 1400 }}

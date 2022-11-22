@@ -2,4 +2,12 @@
 
 export const HANG_BAN_TRA_LAI_CREATE_NEW = "001";
 export const HANG_BAN_TRA_LAI_SAVE = "002";
-export const HANG_BAN_TRA_LAI_UPDATE = "003"
+export const HANG_BAN_TRA_LAI_UPDATE = "003";
+export const HANG_BAN_TRA_LAI_UPDATE_STATUS = "004";
+export const HANG_BAN_TRA_LAI_GET_DATA_API = "005";
+export const HANG_BAN_TRA_LAI_CHECK_SAVED = "006";
+export const HANG_BAN_TRA_LAI_CHECK_SAVED_TAKE = "007";
+
+export const DONG_PHAT_SINH_MULTI_SAVE = "101";
+export const DONG_PHAT_SINH_CHECK_SAVED_TAKE = "007";
+
