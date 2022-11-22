@@ -115,6 +115,7 @@ const FormHangBanTraLai = ({ closeForm, activeId, getId }) => {
         status: status,
         _id: activeId,
       },
+      setFieldValue: form.setFieldValue,
       setStatus: setStatus,
     });
   };
@@ -457,19 +458,17 @@ const FormHangBanTraLai = ({ closeForm, activeId, getId }) => {
       <React.Fragment>
         <FormHeadView
           status={
-            <Segmented
-              style={{
-                color: "blueviolet",
-                backgroundColor: "whitesmoke",
-              }}
-              size="middle"
-              options={[
-                { label: "Chưa ghi sổ", value: "unpost" },
-                { label: "Ghi sổ", value: "post" },
-                { label: "Hủy", value: "cancel" },
-              ]}
-              value={status}
-            />
+            !isCreateMode ? (
+              <Segmented
+                size="middle"
+                options={[
+                  { label: "Chưa ghi sổ", value: "unpost" },
+                  { label: "Ghi sổ", value: "post" },
+                  { label: "Hủy", value: "cancel" },
+                ]}
+                value={status}
+              />
+            ) : null
           }
           formButtons={
             <Row gutter={16}>
@@ -548,7 +547,7 @@ const FormHangBanTraLai = ({ closeForm, activeId, getId }) => {
                       style={{ marginRight: 10 }}
                       icon={<CheckCircleOutlined style={{ color: "green" }} />}
                       onClick={() => {
-                        handleChangeInvoiceStatus("post");
+                        handleChangeInvoiceStatus("unpost");
                       }}
                     >
                       Kích hoạt chứng từ
@@ -636,7 +635,7 @@ const FormHangBanTraLai = ({ closeForm, activeId, getId }) => {
                 <Input
                   style={{ width: "100%" }}
                   value={currHangBanTraLai.name ? currHangBanTraLai.name : ""}
-                  disabled={readOnly}
+                  disabled={true}
                 />
               </Form.Item>
             </Col>

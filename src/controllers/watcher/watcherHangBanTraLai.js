@@ -188,6 +188,10 @@ function* workerUpdateHangBanTraLaiStatus(action) {
         let copyHangBanTraLai = cloneDeep(hangBanTraLai);
         copyHangBanTraLai[index].status = status;
 
+        if (status === "post") {
+            copyHangBanTraLai[index].name = `HBTL/2022/00${copyHangBanTraLai[index].id}`
+        }
+
         yield put({
             type: Actions.HANG_BAN_TRA_LAI_CHECK_SAVED,
             data: {
@@ -202,6 +206,8 @@ function* workerUpdateHangBanTraLaiStatus(action) {
         let res1 = yield call(workerDoApiCall, { apiEndPoint: apiEndPointHangBanTraLai });
         let res2 = yield call(workerDoApiCall, { apiEndPoint: apiEndPointDongPhatSinh });
 
+        console.log(res1);
+
         yield put({
             type: Actions.HANG_BAN_TRA_LAI_SAVE,
             data: {
@@ -211,6 +217,7 @@ function* workerUpdateHangBanTraLaiStatus(action) {
         })
 
         action.setStatus(status);
+        action.setFieldValue("name", `HBTL/2022/00${copyHangBanTraLai[index].id}`);
         getNotification("Thành công", "Chứng từ đã được cập nhật");
     } catch (error) {
         console.log(error)
@@ -331,39 +338,3 @@ function workerDoApiCall(data) {
         return { error: "error-catch" };
     })
 }
-
-// API dong phat sinh
-
-// function workerDoApiCallDongPhatSinh(){
-//     const options = {
-//         method: 'GET',
-//         url: "https://637471ab08104a9c5f8038ef.mockapi.io/api/v1/dongPhatSinh",
-//         // url: "https://dummyjson.com/hangBanTraLai",
-//         // params: {
-//         //     limit: 100
-//         // }
-//     }
-
-//     return axios(options).then(res => {
-//         return res.data;
-//         // return res.data.products;
-//     }).catch(error => {
-//         return { error: "error-catch" };
-//     })
-// }
-
-// function workerPostApiDongPhatSinh(data) {
-//     const options = {
-//         method: 'POST',
-//         url: "https://637471ab08104a9c5f8038ef.mockapi.io/api/v1/dongPhatSinh",
-//         data: data.newLineDongPhatSinh
-
-//     }
-
-//     return axios(options).then(res => {
-//         console.log(res.data)
-//         return res.data;
-//     }).catch(error => {
-//         return { error: "error-catch" };
-//     })
-// }

@@ -37,7 +37,9 @@ const AdminLayout = () => {
             key="1"
             onClick={() => setIsOpen((state) => !state)}
             icon={<SnippetsFilled style={{ fontSize: "20px" }} />}
-          ></Menu.Item>
+          >
+            Bán hàng
+          </Menu.Item>
         </Menu>
       </Sider>
       <Sider
@@ -56,14 +58,18 @@ const AdminLayout = () => {
           <Menu.Item key="1">Bán hàng</Menu.Item>
         </Menu>
       </Sider>
-      <Layout className="site-layout">
+      <Layout className="site-layout" style={{ marginLeft: 1 }}>
         <Header
           className="site-layout-background"
           style={{
             padding: 0,
           }}
         >
-          <Menu mode="horizontal">
+          <Menu
+            className="horizontal-menu"
+            mode="horizontal"
+            style={{ backgroundColor: "#d4380d", padding: 10 }}
+          >
             <Menu.Item>Hàng bán trả lại</Menu.Item>
             <Menu.Item>Hàng bán trả lại</Menu.Item>
             <Menu.Item>Hàng bán trả lại</Menu.Item>

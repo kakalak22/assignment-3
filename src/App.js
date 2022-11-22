@@ -7,8 +7,8 @@ import { ConfigProvider } from 'antd';
 
 ConfigProvider.config({
   theme: {
-    primaryColor: '#fa541c',
-    processingColor: "#fa541c"
+    primaryColor: '#871400',
+    processingColor: "#871400"
   },
 });
 

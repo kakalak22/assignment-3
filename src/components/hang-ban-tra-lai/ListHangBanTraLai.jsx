@@ -180,6 +180,7 @@ const ListHangBanTraLai = ({ openForm, getId }) => {
         buttons={
           <React.Fragment>
             <Button
+              type="primary"
               onClick={() => {
                 openForm();
                 getId("");
@@ -236,7 +237,7 @@ const ListHangBanTraLai = ({ openForm, getId }) => {
         bordered
         loading={isLoading}
         pagination={false}
-        style={{ height: "auto" }}
+        style={{ height: "auto", cursor: "pointer" }}
         scroll={{ y: "calc(98vh - 271px)", x: 1400 }}
         size="small"
         rowKey="_id"
