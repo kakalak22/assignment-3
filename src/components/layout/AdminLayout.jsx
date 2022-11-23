@@ -24,12 +24,21 @@ const AdminLayout = () => {
         collapsed={true}
         style={{
           backgroundColor: "#871400",
+          // position: "fixed",
+          // height: "100vh",
+          // width: "150px",
         }}
         className="collapsed-sider"
       >
         <div className="logo" />
         <Menu
-          style={{ backgroundColor: "#871400", padding: "15px" }}
+          style={{
+            backgroundColor: "#871400",
+            padding: "15px",
+            position: "fixed",
+            width: "80px",
+            top: "40px",
+          }}
           defaultSelectedKeys={["1"]}
           mode="inline"
         >
@@ -63,16 +72,18 @@ const AdminLayout = () => {
           className="site-layout-background"
           style={{
             padding: 0,
+            backgroundColor: "transparent",
           }}
         >
           <Menu
             className="horizontal-menu"
             mode="horizontal"
             style={{ backgroundColor: "#d4380d", padding: 10 }}
+            defaultSelectedKeys={["1"]}
           >
-            <Menu.Item>Hàng bán trả lại</Menu.Item>
-            <Menu.Item>Hàng bán trả lại</Menu.Item>
-            <Menu.Item>Hàng bán trả lại</Menu.Item>
+            <Menu.Item key={"1"}>Hàng bán trả lại</Menu.Item>
+            <Menu.Item key={"2"}>Hàng bán trả lại</Menu.Item>
+            <Menu.Item key={"3"}>Hàng bán trả lại</Menu.Item>
           </Menu>
         </Header>
         <Content

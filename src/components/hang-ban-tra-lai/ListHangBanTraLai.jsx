@@ -1,4 +1,5 @@
-import { Button, Input, Select, Space, Table, Tag } from "antd";
+import { PlusOutlined } from "@ant-design/icons";
+import { Button, Divider, Input, Select, Space, Table, Tag } from "antd";
 import Search from "antd/lib/input/Search";
 import { isEqual } from "lodash";
 import React, { useEffect, useState } from "react";
@@ -6,6 +7,7 @@ import { useDispatch, useSelector } from "react-redux";
 import FieldNumb from "../../base/components/FieldNumb";
 import ListHeadView from "../../base/components/ListHeadView";
 import ListViewContainer from "../../base/components/ListViewContainer";
+import SearchBox from "../../base/components/SearchBox";
 import * as HangBanTraLaiActions from "../../controllers/action-types/actionTypesHangBanTraLai";
 
 const ListHangBanTraLai = ({ openForm, getId }) => {
@@ -16,10 +18,17 @@ const ListHangBanTraLai = ({ openForm, getId }) => {
     },
     (prev, next) => isEqual(prev, next)
   );
-
+  // console.log(hangBanTraLai);
   //local state
 
   const [isLoading, setIsLoading] = useState(false);
+
+  const enableLoading = () => {
+    setIsLoading(true);
+  };
+  const disableLoading = () => {
+    setIsLoading(false);
+  };
 
   useEffect(() => {
     dispatch({
@@ -185,58 +194,31 @@ const ListHangBanTraLai = ({ openForm, getId }) => {
                 openForm();
                 getId("");
               }}
+              icon={<PlusOutlined />}
             >
               Thêm mới
             </Button>
           </React.Fragment>
         }
         filter={
-          <React.Fragment>
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "flex-end",
-                alignItems: "center",
-              }}
-            >
-              <Select
-                // showArrow={false}
-                defaultValue="ten"
-                style={{
-                  width: 100,
-                }}
-                dropdownMatchSelectWidth={true}
-                placement="bottomLeft"
-                options={[
-                  {
-                    value: "soLuongLonHon",
-                    label: "Số lượng lớn hơn hoặc bằng",
-                  },
-                  {
-                    value: "soLuongNhoHon",
-                    label: "Số lượng nhỏ hơn hoặc bằng",
-                  },
-                  {
-                    value: "ten",
-                    label: "Tên",
-                  },
-                ]}
-                //   onChange={onSelect}
-              />
-              <Input style={{ width: 300 }} />
-              <Button>reset</Button>
-              <Button>Search</Button>
-            </div>
-          </React.Fragment>
+          <SearchBox
+            isLoading={isLoading}
+            enableLoading={enableLoading}
+            disableLoading={disableLoading}
+          />
         }
       />
+      <Divider />
       <Table
         className="fast_table"
         columns={column}
         dataSource={hangBanTraLai}
         bordered
         loading={isLoading}
-        pagination={false}
+        pagination={{
+          pageSize: 5,
+          size: "default",
+        }}
         style={{ height: "auto", cursor: "pointer" }}
         scroll={{ y: "calc(98vh - 271px)", x: 1400 }}
         size="small"

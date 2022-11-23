@@ -1,7 +1,9 @@
 .logo {
-  height: 32px;
+  height: 40px;
+  width: 50px;
   margin: 16px;
   background: rgba(255, 255, 255, 0.3);
+  position: fixed;
 }
 
 .site-layout .site-layout-background {
@@ -17,7 +19,7 @@
 }
 
 .collapsed-sider .ant-menu-item-selected {
-  border-radius: 5px !important;
+  border-radius: 10px !important;
   background-color: #f6a89ba0 !important;
   color: #fff !important;
 }
@@ -27,7 +29,7 @@
 }
 
 .sider .ant-menu-item-selected {
-  border-radius: 5px !important;
+  border-radius: 10px !important;
   background-color: #f6a89ba0 !important;
   color: #fff !important;
 }
@@ -50,7 +52,7 @@
 }
 
 .horizontal-menu .ant-menu-item-selected {
-  border-radius: 5px !important;
+  border-radius: 10px !important;
   background-color: #871400 !important;
   color: #fff !important;
   padding: 0;
@@ -80,5 +82,47 @@
 }
 
 button {
-  border-radius: 5px !important;
+  border-radius: 10px !important;
+}
+
+input {
+  border-radius: 10px !important;
+}
+
+.ant-select-selector {
+  border-radius: 10px !important;
+}
+
+.ant-select-open {
+  border-radius: 10px !important;
+}
+
+.ant-input-number {
+  border-radius: 10px !important;
+}
+
+.ant-picker {
+  border-radius: 10px !important;
+}
+
+/* width */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+/* Track */
+::-webkit-scrollbar-track {
+  background: #fff;
+}
+
+/* Handle */
+::-webkit-scrollbar-thumb {
+  background: #871400;
+  border-radius: 10px;
+}
+
+/* Handle on hover */
+::-webkit-scrollbar-thumb:hover {
+  background: #d4380d;
 }

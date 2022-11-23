@@ -4,9 +4,9 @@ import { Form } from "antd";
 
 const ListViewContainer = ({ children, style, className, ...props }) => {
   return (
-    <Form style={{ style }} className={className} {...props}>
+    <div style={{ style }} className={className} {...props}>
       {children ? children : null}
-    </Form>
+    </div>
   );
 };
 

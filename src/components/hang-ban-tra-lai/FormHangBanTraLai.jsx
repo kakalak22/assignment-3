@@ -14,6 +14,7 @@ import {
   Table,
   Select,
   Segmented,
+  notification,
 } from "antd";
 import {
   ArrowLeftOutlined,
@@ -38,12 +39,12 @@ import * as HangBanTraLaiActions from "../../controllers/action-types/actionType
 import moment from "moment";
 import FormFooterComponent from "../../base/components/FormFooterComponent";
 import FormViewLoading from "../../base/components/FormViewLoading";
+import FormThamChieu from "./FormThamChieu";
 
 const ObjectID = require("bson-objectid");
 
 const FormHangBanTraLai = ({ closeForm, activeId, getId }) => {
   const [form] = Form.useForm();
-  const { handleSubmit } = Form.useForm();
 
   const danhSachSanPham = useSelector(
     (state) => {
@@ -66,18 +67,35 @@ const FormHangBanTraLai = ({ closeForm, activeId, getId }) => {
     (prev, next) => isEqual(prev, next)
   );
 
+  // console.log(dongPhatSinh);
+
   const dispatch = useDispatch();
 
   //local state
+  // const today = new Date();
   const [isEditMode, setIsEditMode] = useState(false);
   const [isCreateMode, setIsCreateMode] = useState(true);
   const [keyTabs, setKeyTabs] = useState("ctps");
   const [dataDongPhatSinh, setDataDongPhatSinh] = useState([]);
+  // console.log(dataDongPhatSinh);
   const [readOnly, setReadOnly] = useState(false);
   const [currHangBanTraLai, setCurrHangBanTraLai] = useState({});
   const [tong, setTong] = useState(0);
   const [status, setStatus] = useState("unpost");
   const [isLoading, setIsLoading] = useState(false);
+  const [isFormThamChieuOpen, setIsFormThamChieuOpen] = useState(false);
+
+  //========================================//
+
+  const showModal = () => {
+    setIsFormThamChieuOpen(true);
+  };
+  const handleOk = () => {
+    setIsFormThamChieuOpen(false);
+  };
+  const handleCancel = () => {
+    setIsFormThamChieuOpen(false);
+  };
 
   useEffect(() => {
     if (activeId) {
@@ -144,19 +162,40 @@ const FormHangBanTraLai = ({ closeForm, activeId, getId }) => {
 
   //function submit form
   const createData = (values) => {
-    console.log("submit form");
+    // console.log("submit form");
     if (isCreateMode) {
-      dispatch({
-        type: HangBanTraLaiActions.HANG_BAN_TRA_LAI_CREATE_NEW,
-        data: {
-          hangBanTraLai: values,
-          dongPhatSinh: dataDongPhatSinh,
-        },
-        getId: getId,
-        setIsLoading: setIsLoading,
+      let isError = false;
+      if (dataDongPhatSinh < 1) {
+        notification.error({
+          message: "Vui lòng nhập dòng phát sinh",
+          placement: "topRight",
+        });
+        return;
+      }
+      dataDongPhatSinh.forEach((row) => {
+        if (!row.quantity) {
+          notification.error({
+            message: "Vui lòng nhập số lượng ở dòng phát sinh",
+            placement: "topRight",
+          });
+          isError = true;
+          return;
+        }
       });
-      setReadOnly(true);
-      setIsLoading(true);
+      if (!isError) {
+        dispatch({
+          type: HangBanTraLaiActions.HANG_BAN_TRA_LAI_CREATE_NEW,
+          data: {
+            hangBanTraLai: values,
+            dongPhatSinh: dataDongPhatSinh,
+          },
+          getId: getId,
+          setIsLoading: setIsLoading,
+        });
+        setReadOnly(true);
+        setIsLoading(true);
+        return;
+      }
     }
     if (isEditMode) {
       dispatch({
@@ -454,378 +493,431 @@ const FormHangBanTraLai = ({ closeForm, activeId, getId }) => {
   /*============================= END OF DATA TABLE======================================*/
 
   return (
-    <Form form={form} layout="vertical" onFinish={createData}>
-      <React.Fragment>
-        <FormHeadView
-          status={
-            !isCreateMode ? (
-              <Segmented
-                size="middle"
-                options={[
-                  { label: "Chưa ghi sổ", value: "unpost" },
-                  { label: "Ghi sổ", value: "post" },
-                  { label: "Hủy", value: "cancel" },
-                ]}
-                value={status}
-              />
-            ) : null
-          }
-          formButtons={
-            <Row gutter={16}>
-              <Col span={24} style={{ display: "flex" }}>
-                {isCreateMode ? (
-                  <React.Fragment>
-                    <Button
-                      type="primary"
-                      style={{ marginRight: 10 }}
-                      //   loading={loading}
-                      icon={<PlusCircleOutlined />}
-                      loading={isLoading}
-                      onClick={form.submit}
-                    >
-                      Tạo
-                    </Button>
-                    <Button
-                      type="default"
-                      //   onClick={openFormBanHang}
-                      icon={<CloseOutlined />}
-                      onClick={closeForm}
-                    >
-                      Hủy tạo
-                    </Button>
-                  </React.Fragment>
-                ) : !readOnly ? (
-                  <React.Fragment>
-                    <Button
-                      type="primary"
-                      style={{ marginRight: 10 }}
-                      loading={isLoading}
-                      icon={<SaveOutlined />}
-                      onClick={form.submit}
-                    >
-                      Lưu
-                    </Button>
-                    <Button
-                      type="default"
-                      //   onClick={openFormBanHang}
-                      icon={<CloseOutlined />}
-                      onClick={() => {
-                        setReadOnly(true);
-                        setIsEditMode(false);
-                      }}
-                    >
-                      Hủy
-                    </Button>
-                  </React.Fragment>
-                ) : status === "post" && !isLoading ? (
-                  <React.Fragment>
-                    <Button
-                      type="default"
-                      style={{ marginRight: 10 }}
-                      icon={<CloseCircleOutlined style={{ color: "red" }} />}
-                      onClick={() => {
-                        handleChangeInvoiceStatus("unpost");
-                      }}
-                    >
-                      Bỏ ghi sổ
-                    </Button>
-                    <Button
-                      type="primary"
-                      style={{ marginRight: 10 }}
-                      icon={<EyeOutlined />}
-                    >
-                      Xem
-                    </Button>
-                    <Button style={{ marginRight: 10 }} icon={<EditOutlined />}>
-                      Nhập kho
-                    </Button>
-                  </React.Fragment>
-                ) : status === "cancel" && !isLoading ? (
-                  <React.Fragment>
-                    <Button
-                      type="default"
-                      style={{ marginRight: 10 }}
-                      icon={<CheckCircleOutlined style={{ color: "green" }} />}
-                      onClick={() => {
-                        handleChangeInvoiceStatus("unpost");
-                      }}
-                    >
-                      Kích hoạt chứng từ
-                    </Button>
-                  </React.Fragment>
-                ) : (
-                  <React.Fragment>
-                    <Button
-                      htmlType="button"
-                      type="primary"
-                      style={{ marginRight: 10 }}
-                      //   loading={loading}
-                      onClick={() => {
-                        setReadOnly(false);
-                        setIsEditMode(true);
-                      }}
-                      icon={<EditOutlined />}
-                    >
-                      Sửa
-                    </Button>
+    <React.Fragment>
+      <FormThamChieu
+        isModalOpen={isFormThamChieuOpen}
+        handleCancel={handleCancel}
+        handleOk={handleOk}
+        setDataDongPhatSinh={setDataDongPhatSinh}
+        setFieldValue={form.setFieldValue}
+      />
+      <Form form={form} layout="vertical" onFinish={createData}>
+        <React.Fragment>
+          <FormHeadView
+            status={
+              !isCreateMode ? (
+                <Segmented
+                  size="middle"
+                  options={[
+                    { label: "Chưa ghi sổ", value: "unpost" },
+                    { label: "Ghi sổ", value: "post" },
+                    { label: "Hủy", value: "cancel" },
+                  ]}
+                  value={status}
+                />
+              ) : null
+            }
+            formButtons={
+              <Row gutter={16}>
+                <Col span={24} style={{ display: "flex" }}>
+                  {isCreateMode ? (
+                    <React.Fragment>
+                      <Button
+                        type="primary"
+                        style={{ marginRight: 10 }}
+                        //   loading={loading}
+                        icon={<PlusCircleOutlined />}
+                        loading={isLoading}
+                        onClick={form.submit}
+                      >
+                        Tạo
+                      </Button>
+                      <Button
+                        type="default"
+                        //   onClick={openFormBanHang}
+                        icon={<CloseOutlined />}
+                        onClick={closeForm}
+                      >
+                        Hủy tạo
+                      </Button>
+                    </React.Fragment>
+                  ) : !readOnly ? (
+                    <React.Fragment>
+                      <Button
+                        type="primary"
+                        style={{ marginRight: 10 }}
+                        loading={isLoading}
+                        icon={<SaveOutlined />}
+                        onClick={form.submit}
+                      >
+                        Lưu
+                      </Button>
+                      <Button
+                        type="default"
+                        //   onClick={openFormBanHang}
+                        icon={<CloseOutlined />}
+                        onClick={() => {
+                          setReadOnly(true);
+                          setIsEditMode(false);
+                        }}
+                      >
+                        Hủy
+                      </Button>
+                    </React.Fragment>
+                  ) : status === "post" && !isLoading ? (
+                    <React.Fragment>
+                      <Button
+                        type="default"
+                        style={{ marginRight: 10 }}
+                        icon={<CloseCircleOutlined style={{ color: "red" }} />}
+                        onClick={() => {
+                          handleChangeInvoiceStatus("unpost");
+                        }}
+                      >
+                        Bỏ ghi sổ
+                      </Button>
+                      <Button
+                        type="primary"
+                        style={{ marginRight: 10 }}
+                        icon={<EyeOutlined />}
+                      >
+                        Xem
+                      </Button>
+                      <Button
+                        style={{ marginRight: 10 }}
+                        icon={<EditOutlined />}
+                      >
+                        Nhập kho
+                      </Button>
+                    </React.Fragment>
+                  ) : status === "cancel" && !isLoading ? (
+                    <React.Fragment>
+                      <Button
+                        type="default"
+                        style={{ marginRight: 10 }}
+                        icon={
+                          <CheckCircleOutlined style={{ color: "green" }} />
+                        }
+                        onClick={() => {
+                          handleChangeInvoiceStatus("unpost");
+                        }}
+                      >
+                        Kích hoạt chứng từ
+                      </Button>
+                    </React.Fragment>
+                  ) : (
+                    <React.Fragment>
+                      <Button
+                        htmlType="button"
+                        type="primary"
+                        style={{ marginRight: 10 }}
+                        //   loading={loading}
+                        onClick={() => {
+                          setReadOnly(false);
+                          setIsEditMode(true);
+                        }}
+                        icon={<EditOutlined />}
+                      >
+                        Sửa
+                      </Button>
 
-                    <Button
-                      style={{ marginRight: 10 }}
-                      //   loading={loading}
-                      onClick={() => {
-                        handleChangeInvoiceStatus("post");
-                      }}
-                      icon={<CheckCircleOutlined />}
-                    >
-                      Ghi sổ
-                    </Button>
+                      <Button
+                        style={{ marginRight: 10 }}
+                        //   loading={loading}
+                        onClick={() => {
+                          handleChangeInvoiceStatus("post");
+                        }}
+                        icon={<CheckCircleOutlined />}
+                      >
+                        Ghi sổ
+                      </Button>
 
-                    <Button
-                      type="default"
-                      //   onClick={openFormBanHang}
-                      icon={<CloseOutlined />}
-                      onClick={() => {
-                        handleChangeInvoiceStatus("cancel");
-                      }}
-                    >
-                      Hủy chứng từ
-                    </Button>
-                  </React.Fragment>
-                )}
+                      <Button
+                        type="default"
+                        //   onClick={openFormBanHang}
+                        icon={<CloseOutlined />}
+                        onClick={() => {
+                          handleChangeInvoiceStatus("cancel");
+                        }}
+                      >
+                        Hủy chứng từ
+                      </Button>
+                    </React.Fragment>
+                  )}
 
-                {!isCreateMode ? (
-                  <React.Fragment>
-                    <Button
-                      style={{ marginLeft: 10 }}
-                      icon={<ArrowLeftOutlined />}
-                      onClick={() => closeForm()}
+                  {!isCreateMode ? (
+                    <React.Fragment>
+                      <Button
+                        style={{ marginLeft: 10 }}
+                        icon={<ArrowLeftOutlined />}
+                        onClick={() => closeForm()}
+                      >
+                        Quay lại
+                      </Button>
+                    </React.Fragment>
+                  ) : null}
+                </Col>
+              </Row>
+            }
+          />
+          <Divider />
+          <FormBodyView>
+            <Row gutter={[10, 8]}>
+              <Col span={24} style={{ marginBottom: "20px" }}>
+                <React.Fragment>
+                  <Col span={8}>
+                    <Row
+                      gutter={4}
+                      style={{ alignItems: "center", paddingLeft: "10px" }}
                     >
-                      Quay lại
-                    </Button>
-                  </React.Fragment>
-                ) : null}
+                      <Col span={8}>Tham chiếu: </Col>
+                      <Col span={12}>
+                        <Input disabled={true} />
+                      </Col>
+                      <Col span={2}>
+                        <Button
+                          type="primary"
+                          disabled={!isCreateMode}
+                          onClick={showModal}
+                        >
+                          Chọn
+                        </Button>
+                      </Col>
+                    </Row>
+                  </Col>
+                  <Col span={12}></Col>
+                </React.Fragment>
+              </Col>
+              <Col span={8} style={{ marginLeft: "10px" }}>
+                <Form.Item label="Số chứng từ:" name="name">
+                  <Input
+                    style={{ width: "100%" }}
+                    value={currHangBanTraLai.name ? currHangBanTraLai.name : ""}
+                    disabled={true}
+                  />
+                </Form.Item>
+              </Col>
+              <Col span={4}>
+                <Form.Item
+                  label="Ký hiệu hóa đơn:"
+                  name="invoice_symbol"
+                  rules={[
+                    {
+                      required: true,
+                      message: "Vui lòng nhập kí hiệu hóa đơn",
+                    },
+                  ]}
+                >
+                  <Input
+                    style={{ width: "100%" }}
+                    value={
+                      currHangBanTraLai.invoice_symbol
+                        ? currHangBanTraLai.invoice_symbol
+                        : ""
+                    }
+                    disabled={readOnly}
+                  />
+                </Form.Item>
+              </Col>
+              <Col span={4}>
+                <Form.Item
+                  rules={[
+                    {
+                      required: true,
+                      message: "Vui lòng nhập số hóa đơn",
+                    },
+                  ]}
+                  label="Số hóa đơn:"
+                  name="invoice_code"
+                >
+                  <Input
+                    style={{ width: "100%" }}
+                    disabled={readOnly}
+                    value={
+                      currHangBanTraLai.invoice_code
+                        ? currHangBanTraLai.invoice_code
+                        : ""
+                    }
+                  />
+                </Form.Item>
+              </Col>
+              <Col span={7}>
+                <Form.Item
+                  rules={[
+                    {
+                      required: true,
+                      message: "Vui lòng nhập tên khách hàng",
+                    },
+                  ]}
+                  label="Khách hàng:"
+                  name="partner_id"
+                >
+                  <Input
+                    disabled={readOnly}
+                    style={{ width: "100%" }}
+                    value={
+                      currHangBanTraLai.partner_id
+                        ? currHangBanTraLai.partner_id
+                        : ""
+                    }
+                  />
+                </Form.Item>
+              </Col>
+              {/** hàng 3 **/}
+              <Col span={4} style={{ marginLeft: "10px" }}>
+                <Form.Item
+                  initialValue={moment()}
+                  label="Ngày chứng từ:"
+                  name="invoice_date"
+                >
+                  <DatePicker
+                    // defaultValue={moment(today, "DD/MM/YYYY")}
+                    disabled={readOnly}
+                    format={"DD/MM/YYYY"}
+                    style={{ width: "100%" }}
+                  />
+                </Form.Item>
+              </Col>
+              <Col span={4}>
+                <Form.Item
+                  initialValue={moment()}
+                  label="Ngày hoạch toán:"
+                  name="entry_date"
+                >
+                  <DatePicker
+                    // defaultValue={moment(today, "DD/MM/YYYY")}
+                    disabled={readOnly}
+                    format={"DD/MM/YYYY"}
+                    style={{ width: "100%" }}
+                  />
+                </Form.Item>
+              </Col>
+              <Col span={6}>
+                <Form.Item
+                  label="Loại tiền:"
+                  name="currency_id"
+                  initialValue={"VND"}
+                >
+                  <Input disabled={true} style={{ width: "100%" }} />
+                </Form.Item>
+              </Col>
+              <Col span={2}>
+                <Form.Item label="Tỷ giá:" initialValue={"1.0"}>
+                  <Input disabled={true} style={{ width: "100%" }} />
+                </Form.Item>
+              </Col>
+              <Col span={7}>
+                <Form.Item label="Tham chiếu:">
+                  <Input disabled={true} style={{ width: "100%" }} />
+                </Form.Item>
+              </Col>
+              <Col span={23} style={{ marginLeft: "10px" }}>
+                <Form.Item label="Diễn giải:" name="description">
+                  <Input
+                    style={{ width: "100%" }}
+                    value={currHangBanTraLai.description}
+                    disabled={readOnly}
+                  />
+                </Form.Item>
+              </Col>
+              <Col span={24} style={{ marginLeft: "10px" }}>
+                <Tabs
+                  activeKey={keyTabs}
+                  style={{ width: "100%" }}
+                  // onChange={(tabs) => setKeyTabs(tabs)}
+                >
+                  <TabPane tab="Chi tiết phát sinh" key="ctps">
+                    <Row gutter={10}>
+                      <Col span={23}>
+                        <Table
+                          loading={isLoading}
+                          size="small"
+                          // className="form_table"
+                          bordered={true}
+                          columns={column}
+                          dataSource={dataDongPhatSinh}
+                          rowKey={(record) => record._id}
+                          scroll={{ y: 230, x: 1200 }}
+                          rowClassName={"scroll-row"}
+                          pagination={{
+                            total: dataDongPhatSinh.length,
+                            pageSize: 5,
+                          }}
+                          // pagination={{
+                          //   current: currentPage,
+                          //   onChange: onChangePage,
+                          // }}
+                        />
+                        <Col span={23} style={{ margin: "20px 0" }}>
+                          {!readOnly ? (
+                            <ButtonAddNewRowTable addNewItem={addRow} />
+                          ) : null}
+                        </Col>
+                      </Col>
+                    </Row>
+                  </TabPane>
+                </Tabs>
               </Col>
             </Row>
-          }
-        />
-        <Divider />
-        <FormBodyView>
-          <Row gutter={[10, 8]}>
-            <Col span={24} style={{ marginBottom: "20px" }}>
-              <React.Fragment>
-                <Col span={8}>
-                  <Row
-                    gutter={4}
-                    style={{ alignItems: "center", paddingLeft: "10px" }}
-                  >
-                    <Col span={8}>Tham chiếu: </Col>
-                    <Col span={12}>
-                      <Input disabled={true} />
-                    </Col>
-                    <Col span={2}>
-                      <Button>Chọn</Button>
-                    </Col>
-                  </Row>
-                </Col>
-                <Col span={12}></Col>
-              </React.Fragment>
-            </Col>
-            <Col span={8} style={{ marginLeft: "10px" }}>
-              <Form.Item label="Số chứng từ:" name="name">
-                <Input
-                  style={{ width: "100%" }}
-                  value={currHangBanTraLai.name ? currHangBanTraLai.name : ""}
-                  disabled={true}
-                />
-              </Form.Item>
-            </Col>
-            <Col span={4}>
-              <Form.Item label="Ký hiệu hóa đơn:" name="invoice_symbol">
-                <Input
-                  style={{ width: "100%" }}
-                  value={
-                    currHangBanTraLai.invoice_symbol
-                      ? currHangBanTraLai.invoice_symbol
-                      : ""
-                  }
-                  disabled={readOnly}
-                />
-              </Form.Item>
-            </Col>
-            <Col span={4}>
-              <Form.Item label="Số hóa đơn:" name="invoice_code">
-                <Input
-                  style={{ width: "100%" }}
-                  disabled={readOnly}
-                  value={
-                    currHangBanTraLai.invoice_code
-                      ? currHangBanTraLai.invoice_code
-                      : ""
-                  }
-                />
-              </Form.Item>
-            </Col>
-            <Col span={7}>
-              <Form.Item label="Khách hàng:" name="partner_id">
-                <Input
-                  disabled={readOnly}
-                  style={{ width: "100%" }}
-                  value={
-                    currHangBanTraLai.partner_id
-                      ? currHangBanTraLai.partner_id
-                      : ""
-                  }
-                />
-              </Form.Item>
-            </Col>
-            {/** hàng 3 **/}
-            <Col span={4} style={{ marginLeft: "10px" }}>
-              <Form.Item label="Ngày chứng từ:" name="invoice_date">
-                <DatePicker
-                  disabled={readOnly}
-                  format={"DD/MM/YYYY"}
-                  style={{ width: "100%" }}
-                />
-              </Form.Item>
-            </Col>
-            <Col span={4}>
-              <Form.Item label="Ngày hoạch toán:" name="entry_date">
-                <DatePicker
-                  disabled={readOnly}
-                  format={"DD/MM/YYYY"}
-                  style={{ width: "100%" }}
-                />
-              </Form.Item>
-            </Col>
-            <Col span={6}>
-              <Form.Item
-                label="Loại tiền:"
-                name="currency_id"
-                initialValue={"VND"}
-              >
-                <Input disabled={true} style={{ width: "100%" }} />
-              </Form.Item>
-            </Col>
-            <Col span={2}>
-              <Form.Item label="Tỷ giá:" initialValue={"1.0"}>
-                <Input
-                  disabled={true}
-                  style={{ width: "100%" }}
-                  defaultValue="1.0"
-                />
-              </Form.Item>
-            </Col>
-            <Col span={7}>
-              <Form.Item label="Tham chiếu:">
-                <Input disabled={true} style={{ width: "100%" }} />
-              </Form.Item>
-            </Col>
-            <Col span={23} style={{ marginLeft: "10px" }}>
-              <Form.Item label="Diễn giải:" name="description">
-                <Input
-                  style={{ width: "100%" }}
-                  value={currHangBanTraLai.description}
-                  disabled={readOnly}
-                />
-              </Form.Item>
-            </Col>
-            <Col span={24} style={{ marginLeft: "10px" }}>
-              <Tabs
-                activeKey={keyTabs}
-                style={{ width: "100%" }}
-                // onChange={(tabs) => setKeyTabs(tabs)}
-              >
-                <TabPane tab="Chi tiết phát sinh" key="ctps">
-                  <Row gutter={10}>
-                    <Col span={23}>
-                      <Table
-                        loading={isLoading}
-                        size="small"
-                        // className="form_table"
-                        bordered={true}
-                        columns={column}
-                        dataSource={dataDongPhatSinh}
-                        rowKey={(record) => record._id}
-                        scroll={{ y: 230, x: 1200 }}
-                        rowClassName={"scroll-row"}
-                        pagination={{
-                          total: dataDongPhatSinh.length,
-                          pageSize: 5,
-                        }}
-                        // pagination={{
-                        //   current: currentPage,
-                        //   onChange: onChangePage,
-                        // }}
-                      />
-                      <Col span={23} style={{ margin: "20px 0" }}>
-                        {!readOnly ? (
-                          <ButtonAddNewRowTable addNewItem={addRow} />
-                        ) : null}
-                      </Col>
-                    </Col>
-                  </Row>
-                </TabPane>
-              </Tabs>
-            </Col>
-          </Row>
-        </FormBodyView>
-        <FormFooterComponent
-          datas={[
-            {
-              title: "Tổng trước thuế",
-              children: (
-                <Form.Item style={{ margin: 0 }}>
-                  <FieldNumb
-                    value={tong ? tong : 0}
-                    readOnly={true}
-                    bordered={false}
-                    style={{
-                      width: "100%",
-                      backgroundColor: "transparent",
-                      textAlign: "right",
-                    }}
-                  />
-                </Form.Item>
-              ),
-            },
-            {
-              title: "Thuế",
-              children: (
-                <Form.Item style={{ margin: 0 }}>
-                  <FieldNumb
-                    value={0}
-                    readOnly={true}
-                    bordered={false}
-                    style={{
-                      width: "100%",
-                      backgroundColor: "transparent",
-                      textAlign: "right",
-                    }}
-                  />
-                </Form.Item>
-              ),
-            },
-            {
-              title: "Tổng",
-              children: (
-                <Form.Item name="tot_amount" style={{ margin: 0 }}>
-                  <FieldNumb
-                    value={tong ? tong : 0}
-                    readOnly={true}
-                    bordered={false}
-                    style={{
-                      width: "100%",
-                      backgroundColor: "transparent",
-                      textAlign: "right",
-                    }}
-                  />
-                </Form.Item>
-              ),
-            },
-          ]}
-        />
-      </React.Fragment>
-    </Form>
+          </FormBodyView>
+          <FormFooterComponent
+            datas={[
+              {
+                title: "Tổng trước thuế",
+                children: (
+                  <Form.Item style={{ margin: 0 }}>
+                    <FieldNumb
+                      value={tong ? tong : 0}
+                      readOnly={true}
+                      bordered={false}
+                      style={{
+                        width: "100%",
+                        backgroundColor: "transparent",
+                        textAlign: "right",
+                      }}
+                    />
+                  </Form.Item>
+                ),
+              },
+              {
+                title: "Thuế",
+                children: (
+                  <Form.Item style={{ margin: 0 }}>
+                    <FieldNumb
+                      value={0}
+                      readOnly={true}
+                      bordered={false}
+                      style={{
+                        width: "100%",
+                        backgroundColor: "transparent",
+                        textAlign: "right",
+                      }}
+                    />
+                  </Form.Item>
+                ),
+              },
+              {
+                title: "Tổng",
+                children: (
+                  <Form.Item name="tot_amount" style={{ margin: 0 }}>
+                    <FieldNumb
+                      value={tong ? tong : 0}
+                      readOnly={true}
+                      bordered={false}
+                      style={{
+                        width: "100%",
+                        backgroundColor: "transparent",
+                        textAlign: "right",
+                      }}
+                    />
+                  </Form.Item>
+                ),
+              },
+            ]}
+          />
+        </React.Fragment>
+      </Form>
+    </React.Fragment>
   );
 };
 

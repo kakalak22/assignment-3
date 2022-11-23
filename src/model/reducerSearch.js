@@ -1,4 +1,4 @@
-import * as Actions from "../actionTypesSearch";
+import * as Actions from "../controllers/action-types/actionTypesSearch";
 
 const initialState = {
     searchResults: []
@@ -9,11 +9,10 @@ export default (state = initialState, action) => {
 
         case Actions.SEARCH_SAVE_RESULT: {
             const { data = {} } = action;
-            const { newDanhSachSanPham } = data;
+            const { hangBanTraLai } = data;
             return {
                 ...state,
-                searchResults: newDanhSachSanPham,
-                isSearchClicked: isSearchClicked
+                searchResults: hangBanTraLai,
             }
         }
 

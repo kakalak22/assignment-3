@@ -1,96 +1,112 @@
-import { Input, Space } from "antd";
-import React, { useEffect, useState } from "react";
-import { Select } from "antd";
-import { useDispatch, useSelector } from "react-redux";
-import * as Actions from "../actionTypesSearch";
-const { Search } = Input;
+import { SearchOutlined, UndoOutlined } from "@ant-design/icons";
+import { Button, Form, Input, Select } from "antd";
+import React, { useState } from "react";
+import { useDispatch } from "react-redux";
+import * as ActionsSearch from "../../controllers/action-types/actionTypesSearch";
 
-const SearchBox = ({ size, isSeclect, searchField }) => {
+const SearchBox = () => {
+  const [form] = Form.useForm();
   const dispatch = useDispatch();
-  const [searchVal, setSearchVal] = useState("");
-  const [selectedValue, setSelectedValue] = useState("ten");
-  const [isSearched, setIsSearched] = useState(false);
 
-  const { danhSachSanPham } = useSelector((state) => state.reducerSanPham);
+  //local state
+  const [selectedValue, setSelectedValue] = useState("all");
 
-  const onSelect = (value) => {
+  const submitSearch = (values) => {
+    // console.log(values);
+    dispatch({
+      type: ActionsSearch.SEARCH_PROCESS,
+      data: {
+        searchValue: values.searchValue,
+        status: selectedValue,
+        isReset: false,
+      },
+    });
+  };
+
+  const handleSelect = (value) => {
+    // console.log(value);
     setSelectedValue(value);
   };
 
-  useEffect(() => {
-    const newSearch = [];
+  const handleReset = () => {
     dispatch({
-      type: Actions.SEARCH_SAVE_RESULT,
-      data: {
-        searchResults: newSearch,
-      },
-    });
-  }, []);
-
-  useEffect(() => {
-    if (isSearched) {
-      dispatch({
-        type: Actions.SEARCH_PROCESS,
-        data: {
-          searchValue: searchVal,
-          ttype: selectedValue,
-          searchField: searchField,
-          isRecall: true,
-        },
-      });
-    }
-  }, [danhSachSanPham]);
-
-  const onSearch = (value) => {
-    setIsSearched(true);
-    setSearchVal(value);
-    dispatch({
-      type: Actions.SEARCH_PROCESS,
-      data: {
-        searchValue: value,
-        ttype: selectedValue,
-        searchField: searchField,
-        isRecall: false,
-      },
+      type: ActionsSearch.SEARCH_PROCESS,
+      data: { searchValue: "", status: "all", isReset: true },
     });
   };
 
   return (
-    <Space.Compact size={size} direction="horizontal">
-      {isSeclect ? (
-        <Select
-          showArrow={false}
-          defaultValue="ten"
-          style={{
-            width: 220,
-          }}
-          dropdownMatchSelectWidth={true}
-          placement="bottomLeft"
-          options={[
-            {
-              value: "soLuongLonHon",
-              label: "Số lượng lớn hơn hoặc bằng",
-            },
-            {
-              value: "soLuongNhoHon",
-              label: "Số lượng nhỏ hơn hoặc bằng",
-            },
-            {
-              value: "ten",
-              label: "Tên",
-            },
-          ]}
-          onChange={onSelect}
-        />
-      ) : null}
-      <Search
-        placeholder="input search text"
-        allowClear
-        enterButton="Search"
-        size="middle"
-        onSearch={onSearch}
+    <div
+      style={{
+        display: "flex",
+        justifyContent: "flex-end",
+        alignItems: "center",
+        gap: "5px",
+      }}
+    >
+      <Select
+        // showArrow={false}
+        defaultValue="all"
+        style={{
+          width: 100,
+          borderRadius: "10px",
+        }}
+        dropdownMatchSelectWidth={true}
+        placement="bottomLeft"
+        options={[
+          {
+            value: "all",
+            label: "Tất cả",
+          },
+          {
+            value: "post",
+            label: "Ghi Sổ",
+          },
+          {
+            value: "unpost",
+            label: "Chưa ghi sổ",
+          },
+          {
+            value: "cancel",
+            label: "Hủy chứng từ",
+          },
+        ]}
+        onChange={handleSelect}
       />
-    </Space.Compact>
+      <Form
+        style={{
+          display: "flex",
+          justifyContent: "flex-end",
+          alignItems: "center",
+          gap: "5px",
+        }}
+        form={form}
+        onFinish={submitSearch}
+      >
+        <Form.Item
+          style={{
+            display: "flex",
+            justifyContent: "flex-end",
+            alignItems: "center",
+            margin: 0,
+          }}
+          name="searchValue"
+        >
+          <Input style={{ width: 200 }} />
+        </Form.Item>
+        <Button
+          htmlType="reset"
+          onClick={handleReset}
+          icon={<UndoOutlined />}
+        ></Button>
+        <Button
+          htmlType="submit"
+          type="primary"
+          icon={<SearchOutlined />}
+        ></Button>
+      </Form>
+    </div>
   );
 };
+
 export default SearchBox;

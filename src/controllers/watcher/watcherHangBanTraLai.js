@@ -23,8 +23,8 @@ const getNotification = (message, description) => {
     notification.success({
         message: message,
         description: description,
-        placement: "bottomRight",
-        duration: 1
+        placement: "topRight",
+        duration: 2
     })
 }
 
@@ -33,6 +33,8 @@ function* workerCreateNewHangBanTraLai(action) {
         const hangBanTraLaiId = ObjectID().toString();
         const { data = {} } = action;
         const { hangBanTraLai: newHangBanTraLai, dongPhatSinh: newDongPhatSinh } = data;
+
+        // console.log(newHangBanTraLai);
 
         let newLineHangBanTraLai = {
             invoice_symbol: newHangBanTraLai.invoice_symbol,

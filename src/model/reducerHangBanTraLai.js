@@ -30,6 +30,17 @@ export default (state = initialState, action) => {
                 dongPhatSinh: copyDongPhatSinh
             }
         }
+
+        case Actions.HANG_BAN_TRA_LAI_SINGLE_SAVE: {
+            const { data = {} } = action;
+            const { copyHangBanTraLai } = data;
+            return {
+                ...state,
+                hangBanTraLai: copyHangBanTraLai
+            }
+        }
+
+
         default:
             return state;
     }
